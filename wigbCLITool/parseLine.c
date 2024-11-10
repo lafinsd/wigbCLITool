@@ -113,11 +113,12 @@ PARSE_RES parseLine(char *line, int isp, int isc, FILE *fpinfo) {
     }
     
     {
-        int i = 2;
-        
         int sofar = (int)(cp - line);
         strncpy(rstr, cp, (len-sofar));
         strncpy(line,tstr,len);
+        
+        len   = (int)strlen(line);
+        int i = line[len-1] == '\n' ? 2 : 1;
         
         // remove trailing blanks
         while(line[len-i] == ' ') {

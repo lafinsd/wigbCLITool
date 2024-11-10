@@ -171,13 +171,16 @@ int main(int argc, char **argv)
         }
         else if (pres.spaces > 0) {
             char *pl = (pres.spaces == 1) ? "space" : "spaces";
+            int tlc  = (int)strlen(linein)-1;
+            char nl  = (linein[tlc] == '\n') ? '\0' : '\n';
+            
             gBoguscount += pres.spaces;
             if (gBoguscount < MAXPERROR) {
                 printf("%d %s removed from line %d\n",pres.spaces, pl, inlines);
-                printf("%s%s\n", linein,cpy);
+                printf("%s%c%s\n", linein,nl,cpy);
             }
             fprintf(fpinfo, "%d %s removed from line %d\n",pres.spaces, pl, inlines);
-            fprintf(fpinfo, "%s%s\n", linein,cpy);
+            fprintf(fpinfo, "%s%c%s\n", linein,nl,cpy);
         }
         
         mlen = (int)strlen(cpy)+1;
