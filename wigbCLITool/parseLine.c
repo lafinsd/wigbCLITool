@@ -14,9 +14,7 @@
 #define tCOMMA ','
 #define tQUOTE '\"'
 
-extern int gBoguscount;
-
-int parseLine(char *line, int isp, int isc, FILE *fpinfo) {
+PARSE_RES parseLine(char *line, int isp, int isc, FILE *fpinfo) {
     char tgtf[]  = {tQUOTE, tQUOTE, tCOMMA, tCOMMA, tCOMMA, tQUOTE, tQUOTE};    // full line
     char tgtp[]  = {tQUOTE, tQUOTE, tCOMMA, tCOMMA, tQUOTE, tQUOTE};            // page field missing
     char tgta[]  = {tQUOTE, tQUOTE, tCOMMA, tCOMMA};                            // author field missing
@@ -24,8 +22,9 @@ int parseLine(char *line, int isp, int isc, FILE *fpinfo) {
     
     char *tgt;
     char *cp = line;
-    int  tsz, spaces = 0, i=0, j=0, len=(int)strlen(line);
+    int  tsz, i=0, j=0, len=(int)strlen(line);
     char *rstr, *tstr = malloc(len);
+    PARSE_RES res = {0,0};
     
     // depending on options set parse target
     if (isp && isc) {
@@ -44,10 +43,10 @@ int parseLine(char *line, int isp, int isc, FILE *fpinfo) {
     
     while ((i < len) && (j < tsz)){
         if ((j == (tsz-2)) && (*cp == ',') && (!isc)) {
-            if (gBoguscount++ < MAXPERROR) printf("Unexpected ',' in this line\n%s\n", line);
+            if (res.errors++ < MAXPERROR) printf("Unexpected ',' in this line\n%s\n", line);
             fprintf(fpinfo, "Unexpected ',' in this line\n%s\n", line);
             free(tstr);
-            return -1;
+            return res;
         }
         
         if (*cp++ == tgt[j]) {
@@ -60,10 +59,10 @@ int parseLine(char *line, int isp, int isc, FILE *fpinfo) {
         // make sure there aren't any more tokens
         while (i < len) {
             if ((*cp == tCOMMA) || (*cp == tQUOTE)) {
-                if (gBoguscount++ < MAXPERROR) printf("There is an extra token in this line\n%s\n", line);
+                if (res.errors++ < MAXPERROR) printf("There is an extra token in this line\n%s\n", line);
                 fprintf(fpinfo, "Extra token(s) in this line\n%s\n", line);
                 free(tstr);
-                return -1;
+                return res;
             }
             ++cp;
             ++i;
@@ -81,10 +80,10 @@ int parseLine(char *line, int isp, int isc, FILE *fpinfo) {
             tstr = realloc(tstr,len);
         }
         else {
-            if (gBoguscount++ < MAXPERROR) printf("Token(s) missing in this line\n%s\n", line);
+            if (res.errors++ < MAXPERROR) printf("Token(s) missing in this line\n%s\n", line);
             fprintf(fpinfo, "Token(s) missing in this line\n%s\n", line);
             free(tstr);
-            return -1;
+            return res;
         }
         
     }
@@ -92,7 +91,7 @@ int parseLine(char *line, int isp, int isc, FILE *fpinfo) {
     cp = line;
     rstr = tstr;
     while (*cp == ' ') {        //skip initial spaces
-        spaces++;
+        res.spaces++;
         cp++;
     }
     *rstr++ = *cp++;            //record the "
@@ -107,7 +106,7 @@ int parseLine(char *line, int isp, int isc, FILE *fpinfo) {
                 *rstr++ = *cp++;
             }
             else {
-                spaces++;
+                res.spaces++;
                 cp++;
             }
         }
@@ -122,7 +121,7 @@ int parseLine(char *line, int isp, int isc, FILE *fpinfo) {
         
         // remove trailing blanks
         while(line[len-i] == ' ') {
-            spaces++;
+            res.spaces++;
             line[len-i] = '\n';
             ++i;
         }
@@ -131,5 +130,5 @@ int parseLine(char *line, int isp, int isc, FILE *fpinfo) {
     }
     
     free(tstr);
-    return spaces;
+    return res;
 }
