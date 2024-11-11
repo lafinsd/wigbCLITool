@@ -42,7 +42,7 @@ int main(int argc, char **argv)
     printBanner(argv[0]);
     
     {
-        int offset, gopt;
+        int offset, gopt; 
         
         opterr = 0;   // suppress error message from getopt()
         while ((gopt=getopt(argc, argv, OPT_STRING)) != -1) {
