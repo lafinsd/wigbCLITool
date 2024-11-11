@@ -42,7 +42,7 @@ int main(int argc, char **argv)
     printBanner(argv[0]);
     
     {
-        int offset, gopt; 
+        int offset, gopt;
         
         opterr = 0;   // suppress error message from getopt()
         while ((gopt=getopt(argc, argv, OPT_STRING)) != -1) {
@@ -203,7 +203,7 @@ int main(int argc, char **argv)
         
         /* we're at the start of the number of pages field. get it. */
         if ((numpages=(int)strtol(cp,&eptr,10)) > 0) {
-            if ((*eptr != ' ') && (*eptr != ',') && (isc && (*eptr != '\n'))) {
+            if ((*eptr != ',') && (isc && (*eptr != '\n'))) {
                 if (gBoguscount++ < MAXPERROR) printf("Line %d: bad number-of-pages field\n%s\n", inlines, linein);
                 fprintf(fpinfo, "Line %d: bad number-of-pages field\n%s\n", inlines, linein);
                 wout = 0;

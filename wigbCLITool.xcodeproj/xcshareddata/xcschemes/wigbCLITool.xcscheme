@@ -62,7 +62,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-c Foo,Bar"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-f 2"
