@@ -170,17 +170,17 @@ int main(int argc, char **argv)
             continue;
         }
         else if (pres.spaces > 0) {
-            char *pl = (pres.spaces == 1) ? "space" : "spaces";
-            int tlc  = (int)strlen(linein)-1;
-            char nl  = (linein[tlc] == '\n') ? '\0' : '\n';
+            char *pl  = (pres.spaces == 1) ? "space" : "spaces";
+            int tlc   = (int)strlen(linein)-1;
+            char *FMT = (linein[tlc] == '\n') ? "%s%s\n" : "%s\n%s\n";
             
             gBoguscount += pres.spaces;
             if (gBoguscount < MAXPERROR) {
-                printf("%d %s removed from line %d\n",pres.spaces, pl, inlines);
-                printf("%s%c%s\n", linein,nl,cpy);
+                printf("%d %s removed from line %d\n", pres.spaces, pl, inlines);
+                printf(FMT, linein, cpy);
             }
-            fprintf(fpinfo, "%d %s removed from line %d\n",pres.spaces, pl, inlines);
-            fprintf(fpinfo, "%s%c%s\n", linein,nl,cpy);
+            fprintf(fpinfo, "%d %s removed from line %d\n", pres.spaces, pl, inlines);
+            fprintf(fpinfo, FMT, linein, cpy);
         }
         
         mlen = (int)strlen(cpy)+1;
@@ -274,8 +274,8 @@ int main(int argc, char **argv)
     
     xtralines = ((xtralines > 0) && isd) ? xtralines : 0;
 
-    printf("%d lines read\n%d lines written\n", inlines, outlines + xtralines);
-    fprintf(fpinfo, "%d lines read\n%d lines written\n", inlines, outlines + xtralines);
+    printf("\n%d lines read\n%d lines written\n", inlines, outlines + xtralines);
+    fprintf(fpinfo, "\n%d lines read\n%d lines written\n", inlines, outlines + xtralines);
     
     
     if (outlines < MINLINES) {
