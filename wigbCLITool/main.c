@@ -24,8 +24,6 @@ static char *skipTitle(char *);
 static void  makeofname(char *, char *, char *);
 static void  printBanner(char *);
 
-int   gBoguscount = 0;
-
 extern PARSE_RES parseLine(char *, int, int, FILE *);
 
 int main(int argc, char **argv)
@@ -33,7 +31,7 @@ int main(int argc, char **argv)
     FILE *fpin, *fpout, *fpinfo;
     char *fin, *fout, *finfo, *cp, linein[BUFSIZE], cpy[BUFSIZE];
     int   numpages;
-    int   wout = 1, inlines = 0, outlines = 0;
+    int   wout = 1, inlines = 0, outlines = 0, errorCnt = 0;
     int   curpage = INITCP;
     int   isp = 0, isc = 0, isd = 0, isauto = 0, xtralines = 0;
     char *defAuthor = NULL;
@@ -166,7 +164,7 @@ int main(int argc, char **argv)
         
         pres = parseLine(cpy, isp, isc, fpinfo);
         if (pres.num_errors > 0) {
-            gBoguscount += pres.num_errors;
+            errorCnt += pres.num_errors;
             if (pres.error == E_EMPTY) {
                 printf("Line %d empty. Removed\n", inlines);
                 fprintf(fpinfo, "Line %d empty. Removed\n", inlines);
@@ -181,8 +179,8 @@ int main(int argc, char **argv)
             int tlc   = (int)strlen(linein)-1;
             char *FMT = (linein[tlc] == '\n') ? "%s%s\n" : "%s\n%s\n";
             
-            gBoguscount += pres.spaces;
-            if (gBoguscount < MAXPERROR) {
+            errorCnt += pres.spaces;
+            if (errorCnt < MAXPERROR) {
                 printf("%d %s removed from line %d\n", pres.spaces, pl, inlines);
                 printf(FMT, linein, cpy);
             }
@@ -211,7 +209,7 @@ int main(int argc, char **argv)
         /* we're at the start of the number of pages field. get it. */
         if ((numpages=(int)strtol(cp,&eptr,10)) > 0) {
             if ((*eptr != ',') && (isc && (*eptr != '\n'))) {
-                if (gBoguscount++ < MAXPERROR) printf("Line %d: bad number-of-pages field\n%s\n", inlines, linein);
+                if (errorCnt++ < MAXPERROR) printf("Line %d: bad number-of-pages field\n%s\n", inlines, linein);
                 fprintf(fpinfo, "Line %d: bad number-of-pages field\n%s\n", inlines, linein);
                 wout = 0;
                 continue;
@@ -234,14 +232,14 @@ int main(int argc, char **argv)
             }
         }
         else {
-            if (gBoguscount++ < MAXPERROR) printf("\n\nLine %d: bad number-of-pages field\n%s\n", inlines, linein);
+            if (errorCnt++ < MAXPERROR) printf("\n\nLine %d: bad number-of-pages field\n%s\n", inlines, linein);
             fprintf(fpinfo, "\n\nLine %d: bad number-of-pages field\n%s\n", inlines, linein);
             wout = 0;
             continue;
         }
     }
     
-    if (gBoguscount > MAXPERROR) printf("%d more errors/warnings...\nSee %s in output directory\n\n", gBoguscount, basename(finfo));
+    if (errorCnt > MAXPERROR) printf("%d more errors/warnings...\nSee %s in output directory\n\n", errorCnt, basename(finfo));
     
     if ((fpout = fopen(fout, "w")) == NULL) {
         printf("%s: cannot open\n", fout);
