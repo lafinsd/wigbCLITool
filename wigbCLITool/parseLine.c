@@ -14,6 +14,8 @@
 #define tCOMMA ','
 #define tQUOTE '\"'
 
+static int isblank(char *);
+
 PARSE_RES parseLine(char *line, int isp, int isc, FILE *fpinfo) {
     char tgtf[]  = {tQUOTE, tQUOTE, tCOMMA, tCOMMA, tCOMMA, tQUOTE, tQUOTE};    // full line
     char tgtp[]  = {tQUOTE, tQUOTE, tCOMMA, tCOMMA, tQUOTE, tQUOTE};            // page field missing
@@ -24,8 +26,13 @@ PARSE_RES parseLine(char *line, int isp, int isc, FILE *fpinfo) {
     char *cp = line;
     int  tsz, i=0, j=0, len=(int)strlen(line);
     char *rstr, *tstr = malloc(len);
-    PARSE_RES res = {0,0};
+    PARSE_RES res = {0,0,E_NONE};
     
+    if (isblank(line)) {
+        res.error = E_EMPTY;
+        res.num_errors++;
+        return res;
+    }
     // depending on options set parse target
     if (isp && isc) {
         tgt = tgtpa;
@@ -43,7 +50,8 @@ PARSE_RES parseLine(char *line, int isp, int isc, FILE *fpinfo) {
     
     while ((i < len) && (j < tsz)){
         if ((j == (tsz-2)) && (*cp == ',') && (!isc)) {
-            if (res.errors++ < MAXPERROR) printf("Unexpected ',' in this line\n%s\n", line);
+            res.error = E_TOKEN;
+            if (res.num_errors++ < MAXPERROR) printf("Unexpected ',' in this line\n%s\n", line);
             fprintf(fpinfo, "Unexpected ',' in this line\n%s\n", line);
             free(tstr);
             return res;
@@ -59,7 +67,8 @@ PARSE_RES parseLine(char *line, int isp, int isc, FILE *fpinfo) {
         // make sure there aren't any more tokens
         while (i < len) {
             if ((*cp == tCOMMA) || (*cp == tQUOTE)) {
-                if (res.errors++ < MAXPERROR) printf("There is an extra token in this line\n%s\n", line);
+                res.error = E_TOKEN;
+                if (res.num_errors++ < MAXPERROR) printf("There is an extra token in this line\n%s\n", line);
                 fprintf(fpinfo, "Extra token(s) in this line\n%s\n", line);
                 free(tstr);
                 return res;
@@ -80,7 +89,8 @@ PARSE_RES parseLine(char *line, int isp, int isc, FILE *fpinfo) {
             tstr = realloc(tstr,len);
         }
         else {
-            if (res.errors++ < MAXPERROR) printf("Token(s) missing in this line\n%s\n", line);
+            res.error = E_TOKEN;
+            if (res.num_errors++ < MAXPERROR) printf("Token(s) missing in this line\n%s\n", line);
             fprintf(fpinfo, "Token(s) missing in this line\n%s\n", line);
             free(tstr);
             return res;
@@ -132,4 +142,16 @@ PARSE_RES parseLine(char *line, int isp, int isc, FILE *fpinfo) {
     
     free(tstr);
     return res;
+}
+
+static int isblank(char *line) {
+    int i;
+    
+    for (i=0; i<strlen(line); ++i) {
+        if (line[i] == ' '  || line[i] == '\n') {
+            continue;
+        }
+        return 0;
+    }
+    return 1;
 }

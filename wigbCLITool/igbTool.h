@@ -12,7 +12,14 @@
 
 #define DEFAUTHOR  "[Author]"
 
+typedef enum {
+    E_NONE,
+    E_EMPTY,
+    E_TOKEN
+} ETYPE;
+
 typedef struct {
-    int spaces;
-    int errors;
+    int   spaces;
+    int   num_errors;
+    ETYPE error;
 } PARSE_RES;

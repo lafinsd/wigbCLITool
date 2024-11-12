@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "1600"
+   LastUpgradeVersion = "1610"
    version = "1.7">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -16,7 +16,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "83D362682CACC48D002E909A"
-               BuildableName = "wigbCLITool"
+               BuildableName = "igbTool"
                BlueprintName = "wigbCLITool"
                ReferencedContainer = "container:wigbCLITool.xcodeproj">
             </BuildableReference>
@@ -41,16 +41,19 @@
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES"
       viewDebuggingEnabled = "No">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
+      <PathRunnable
+         runnableDebuggingMode = "0"
+         FilePath = "/Users/lafMBAir/Library/Developer/Xcode/DerivedData/wigbCLITool-dlvnniqcwdgtrofnarvqqsehijxh/Build/Products/Debug/wigbCLITool">
+      </PathRunnable>
+      <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "83D362682CACC48D002E909A"
-            BuildableName = "wigbCLITool"
+            BuildableName = "igbTool"
             BlueprintName = "wigbCLITool"
             ReferencedContainer = "container:wigbCLITool.xcodeproj">
          </BuildableReference>
-      </BuildableProductRunnable>
+      </MacroExpansion>
       <CommandLineArguments>
          <CommandLineArgument
             argument = "-p"
@@ -62,7 +65,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-c Foo,Bar"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-f 2"
@@ -133,6 +136,17 @@
             isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
+      <AdditionalOptions>
+         <AdditionalOption
+            key = "APP_DISTRIBUTOR_ID_OVERRIDE"
+            value = "com.apple.AppStore"
+            isEnabled = "YES">
+         </AdditionalOption>
+      </AdditionalOptions>
+      <LocationScenarioReference
+         identifier = "com.apple.dt.IDEFoundation.CurrentLocationScenarioIdentifier"
+         referenceType = "1">
+      </LocationScenarioReference>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -145,7 +159,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "83D362682CACC48D002E909A"
-            BuildableName = "wigbCLITool"
+            BuildableName = "igbTool"
             BlueprintName = "wigbCLITool"
             ReferencedContainer = "container:wigbCLITool.xcodeproj">
          </BuildableReference>
