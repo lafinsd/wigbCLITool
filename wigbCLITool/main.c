@@ -13,7 +13,7 @@
 
 #define OPUPLD     "BlkUpld"
 #define OPINFO     "info"
-#define ETYPE      "(b2)"
+#define ETYPE      "(b3)"
 #define DUMMY_NAME "\"ZZSong"
 
 #define USAGE_FMT  "Usage: %s [-d] [-p] [-c<\"Composer Name\">] [-f<offset>] <infilename>\n"

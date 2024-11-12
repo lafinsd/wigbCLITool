@@ -16,7 +16,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "83D362682CACC48D002E909A"
-               BuildableName = "wigbCLITool"
+               BuildableName = "igbTool"
                BlueprintName = "wigbCLITool"
                ReferencedContainer = "container:wigbCLITool.xcodeproj">
             </BuildableReference>
@@ -49,7 +49,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "83D362682CACC48D002E909A"
-            BuildableName = "wigbCLITool"
+            BuildableName = "igbTool"
             BlueprintName = "wigbCLITool"
             ReferencedContainer = "container:wigbCLITool.xcodeproj">
          </BuildableReference>
@@ -159,7 +159,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "83D362682CACC48D002E909A"
-            BuildableName = "wigbCLITool"
+            BuildableName = "igbTool"
             BlueprintName = "wigbCLITool"
             ReferencedContainer = "container:wigbCLITool.xcodeproj">
          </BuildableReference>
