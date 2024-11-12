@@ -165,8 +165,15 @@ int main(int argc, char **argv)
         strcpy(cpy, linein);
         
         pres = parseLine(cpy, isp, isc, fpinfo);
-        if (pres.errors > 0) {
-            wout = 0;
+        if (pres.num_errors > 0) {
+            gBoguscount += pres.num_errors;
+            if (pres.error == E_EMPTY) {
+                printf("Line %d empty. Removed\n", inlines);
+                fprintf(fpinfo, "Line %d empty. Removed\n", inlines);
+            }
+            else {
+                wout = 0;
+            }
             continue;
         }
         else if (pres.spaces > 0) {
