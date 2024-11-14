@@ -8,6 +8,8 @@
 
 #include "igbTool.h"
 
+#define DO_NOT_OVERWRITE
+
 #define NUMARGS    1
 #define INITCP     1
 
@@ -16,7 +18,7 @@
 #define ETYPE      "(b1.1)"
 #define DUMMY_NAME "\"ZZSong"
 
-#define USAGE_FMT  "Usage: %s [-d] [-p] [-c<\"Composer Name\">] [-f<offset>] <infilename>\n"
+#define USAGE_FMT  "Usage: %s [-d] [-p] [-c<\"Composer Name\">] [-f<offset>] <infilename> [outfilename]\n"
 #define OPT_STRING "A::f:dpc:"
 #define OPT_HIDDEN "utomator"
 
@@ -117,9 +119,19 @@ int main(int argc, char **argv)
     }
     
     
-    if ((argc-optind) != NUMARGS)  {
-        printf(USAGE_FMT, basename(argv[0]));
-        exit(1);
+    {
+        int diff = argc-optind;
+        
+        cp = NULL;
+        if (diff != NUMARGS)  {
+            if (diff == (NUMARGS+1)) {
+                cp = argv[optind+1];
+            }
+            else {
+                printf(USAGE_FMT, basename(argv[0]));
+                exit(1);
+            }
+        }
     }
     
     fin = argv[optind];
@@ -129,11 +141,23 @@ int main(int argc, char **argv)
         exit(1);
     }
     
-    fout  = malloc(strlen(fin) + (strlen(OPUPLD) + 4));      // room for prefix plus numerals up to '9999'
-    finfo = malloc(strlen(fin) + (strlen(OPINFO) + 4));      // room for prefix plus numerals up to '9999'
-    makeofname(fin, fout, finfo);
+    if (cp == NULL) {
+        fout  = malloc(strlen(fin) + (strlen(OPUPLD) + 6));    // room for '9999', '_', and '/'
+        finfo = malloc(strlen(fin) + (strlen(OPINFO) + 6));    // room for '9999', '_', and '/'
+        makeofname(fin, fout, finfo);
+    }
+    else {
+        int len = (int)strlen(dirname(fin)) + (int)strlen(cp) + 1;  // room for '/'
+        
+        fout = calloc(len,1);
+        sprintf(fout, "%s/%s", dirname(fin), cp);
+        
+        finfo = calloc(((int)strlen(fin) + (int)(strlen(OPINFO) + (int)strlen(cp) + 2)),1);
+        sprintf(finfo, "%s/%s_%s", dirname(fin), OPINFO, cp);
+    }
     
     fpinfo = fopen(finfo, "w+");
+    fpout  = fopen(fout, "w+");
     
     if (isauto) {
         int i;
@@ -242,7 +266,7 @@ int main(int argc, char **argv)
     
     if (errorCnt > MAXPERROR) printf("%d more errors/warnings...\nSee %s in output directory\n\n", errorCnt, basename(finfo));
     
-    if ((fpout = fopen(fout, "w")) == NULL) {
+    if (fpout == NULL) {
         printf("%s: cannot open\n", fout);
         fprintf(fpinfo, "%s: cannot open\n", fout);
         outlines = 0;
@@ -342,19 +366,24 @@ static char *skipTitle(char *line)
 
 
 static void makeofname (char *fin, char *fout, char *finfo) {
-    char *cp;
-    long  count;
+    //char *cp;
+    //long  count;
     
     sprintf(finfo, "%s/%s_%s", dirname(fin), OPINFO, basename(fin));
-    
     sprintf(fout, "%s/%s_%s", dirname(fin), OPUPLD, basename(fin));
-    cp = fout + strlen(dirname(fout))+sizeof(OPUPLD);
-    count = strtol(cp,NULL,10);
+    
+#ifdef DO_NOT_OVERWRITE
+    char *cp    = fout + strlen(dirname(fout))+sizeof(OPUPLD);
+    long  count = strtol(cp,NULL,10);
+    
+    //cp    = fout + strlen(dirname(fout))+sizeof(OPUPLD);
+    //count = strtol(cp,NULL,10);
     
     while ((access(fout, F_OK)) != -1) {
         ++count;
         sprintf(fout, "%s/%s%ld_%s", dirname(fin), OPUPLD, count, basename(fin));
         sprintf(finfo, "%s/%s%ld_%s", dirname(fin), OPINFO, count, basename(fin));
     }
+#endif
     return;
 }
