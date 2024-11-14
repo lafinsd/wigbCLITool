@@ -13,7 +13,7 @@
 
 #define OPUPLD     "BlkUpld"
 #define OPINFO     "info"
-#define ETYPE      "(b3)"
+#define ETYPE      "(b1.1)"
 #define DUMMY_NAME "\"ZZSong"
 
 #define USAGE_FMT  "Usage: %s [-d] [-p] [-c<\"Composer Name\">] [-f<offset>] <infilename>\n"
@@ -29,13 +29,12 @@ extern PARSE_RES parseLine(char *, int, int, FILE *);
 int main(int argc, char **argv)
 {
     FILE *fpin, *fpout, *fpinfo;
-    char *fin, *fout, *finfo, *cp, linein[BUFSIZE], cpy[BUFSIZE];
+    char *fin, *fout, *finfo, *cp, *defAuthor;
+    char  linein[BUFSIZE], cpy[BUFSIZE], *olines[MAXLINES];
     int   numpages;
     int   wout = 1, inlines = 0, outlines = 0, errorCnt = 0;
     int   curpage = INITCP;
     int   isp = 0, isc = 0, isd = 0, isauto = 0, xtralines = 0;
-    char *defAuthor = NULL;
-    char *olines[MAXLINES];
     
     printBanner(argv[0]);
     
@@ -113,7 +112,9 @@ int main(int argc, char **argv)
         defAuthor = calloc((strlen(DEFAUTHOR)+1),1);
         strcpy(defAuthor, DEFAUTHOR);
     }
-    
+    else {
+        defAuthor = NULL;
+    }
     
     
     if ((argc-optind) != NUMARGS)  {
