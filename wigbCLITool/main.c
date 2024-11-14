@@ -31,7 +31,7 @@ extern PARSE_RES parseLine(char *, int, int, FILE *);
 int main(int argc, char **argv)
 {
     FILE *fpin, *fpout, *fpinfo;
-    char *fin, *fout, *finfo, *cp, *defAuthor;
+    char *fin, *fout, *finfo, *cp, *defAuthor = NULL;
     char  linein[BUFSIZE], cpy[BUFSIZE], *olines[MAXLINES];
     int   numpages;
     int   wout = 1, inlines = 0, outlines = 0, errorCnt = 0;
@@ -114,10 +114,6 @@ int main(int argc, char **argv)
         defAuthor = calloc((strlen(DEFAUTHOR)+1),1);
         strcpy(defAuthor, DEFAUTHOR);
     }
-    else {
-        defAuthor = NULL;
-    }
-    
     
     {
         int diff = argc-optind;
@@ -165,14 +161,22 @@ int main(int argc, char **argv)
         fprintf (fpinfo, "\n%s", basename(argv[0]));
         for (i=1; i<argc; ++i) {
             if (i != isauto) {
-                fprintf (fpinfo, " %s", argv[i]);
+                char *cp = strchr(argv[i], ' ');
+                if (cp == NULL) {
+                    fprintf (fpinfo, " %s", argv[i]);
+                    //printf (" %s", argv[i]);
+                }
+                else {
+                    fprintf (fpinfo, " \"%s\"", argv[i]);
+                    //printf (" \"%s\"", argv[i]);
+                }
             }
         }
         fprintf(fpinfo,"\n\n");
     }
     
     printf("Output file name is \"%s\" (%s)\n\n", basename(fout), fout);
-    fprintf(fpinfo, "Output file name is \"%s\" (%s)\n\n", basename(fout), fout);
+    fprintf(fpinfo, "Output file name is \"%s\" (\"%s\")\n\n", basename(fout), fout);
     
     while (NULL != fgets(linein, sizeof(linein)-1, fpin)) {
         int mlen;
