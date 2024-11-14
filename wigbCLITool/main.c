@@ -18,7 +18,7 @@
 #define ETYPE      "(b1.1)"
 #define DUMMY_NAME "\"ZZSong"
 
-#define USAGE_FMT  "Usage: %s [-d] [-p] [-c<\"Composer Name\">] [-f<offset>] <infilename> [outfilename]\n"
+#define USAGE_FMT  "Usage: %s [-d] [-p] [-c<\"Composer\">] [-f<offset>] <infile> [outfile]\n"
 #define OPT_STRING "A::f:dpc:"
 #define OPT_HIDDEN "utomator"
 

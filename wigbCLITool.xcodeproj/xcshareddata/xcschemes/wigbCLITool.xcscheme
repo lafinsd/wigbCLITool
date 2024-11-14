@@ -108,16 +108,20 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "&quot;/Users/Shared/MyRoot/temp/temp/igb/BorgoBookcopy copy.txt&quot;"
+            argument = "foo"
             isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "&quot;/Users/Shared/MyRoot/temp/temp/igb/BorgoBookcopy copy.txt&quot;"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/Shared/MyRoot/temp/temp/igb/expBB.txt"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/Shared/MyRoot/temp/temp/igb/nopagen.txt"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/Shared/MyRoot/temp/temp/igb/noauth.txt"
@@ -129,7 +133,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/Shared/MyRoot/temp/temp/igb/nothing.txt"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "2"
