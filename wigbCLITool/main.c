@@ -48,6 +48,10 @@ int main(int argc, char **argv)
             errno = 0;
             switch (gopt) {
                 case 'A':
+                    /* This option occurs only when invoked from Automator and causes the
+                     * invocation line to appear in the info file. Guard against accidental
+                     * confusion if a bogus option interferes.
+                     */
                     isauto = optind - 1;
                     if (optarg == 0) {
                         printf("Illegal option \"%s\"\n", argv[isauto]);
@@ -64,6 +68,7 @@ int main(int argc, char **argv)
                     break;
                 
                 case 'f':
+                    // Offset provided
                     errno  = 0;
                     offset = (int)strtol(optarg,NULL,10);
                     if (offset > 0) {
@@ -88,14 +93,17 @@ int main(int argc, char **argv)
                     break;
                 
                 case 'd':
+                    // Add dummy entries if needed
                     isd = 1;
                     break;
                 
                 case 'p':
+                    // No dummy page numbers in source file
                     isp = 1;
                     break;
                 
                 case 'c':
+                    // Composer name provided
                     defAuthor = calloc((strlen(optarg)+1),1);
                     strcpy(defAuthor, optarg);
                     isc = 1;
@@ -110,11 +118,13 @@ int main(int argc, char **argv)
         }
     }
     
+    // populate composer string if one wasn't provided
     if (!isc) {
         defAuthor = calloc((strlen(DEFAUTHOR)+1),1);
         strcpy(defAuthor, DEFAUTHOR);
     }
     
+    // See if optional output file name is there and if so save it.
     {
         int diff = argc-optind;
         
@@ -138,11 +148,13 @@ int main(int argc, char **argv)
     }
     
     if (cp == NULL) {
+        // Optional output file name not there. Use default output file names.
         fout  = malloc(strlen(fin) + (strlen(OPUPLD) + 6));    // room for '9999', '_', and '/'
         finfo = malloc(strlen(fin) + (strlen(OPINFO) + 6));    // room for '9999', '_', and '/'
         makeofname(fin, fout, finfo);
     }
     else {
+        // Optional output file name is there
         int len = (int)strlen(dirname(fin)) + (int)strlen(cp) + 1;  // room for '/'
         
         fout = calloc(len,1);
@@ -155,29 +167,31 @@ int main(int argc, char **argv)
     fpinfo = fopen(finfo, "w+");
     fpout  = fopen(fout, "w+");
     
+    // If invoked from Automator print out invocation line in info file.
     if (isauto) {
         int i;
         
         fprintf (fpinfo, "\n%s", basename(argv[0]));
         for (i=1; i<argc; ++i) {
+            // Don't print out the hidden '-Automator' argument
             if (i != isauto) {
+                // Surround entries having blanks with "
                 char *cp = strchr(argv[i], ' ');
                 if (cp == NULL) {
                     fprintf (fpinfo, " %s", argv[i]);
-                    //printf (" %s", argv[i]);
                 }
                 else {
                     fprintf (fpinfo, " \"%s\"", argv[i]);
-                    //printf (" \"%s\"", argv[i]);
                 }
             }
         }
         fprintf(fpinfo,"\n\n");
     }
     
-    printf("Output file name is \"%s\" (%s)\n\n", basename(fout), fout);
+    printf("Output file name is \"%s\" (\"%s\")\n\n", basename(fout), fout);
     fprintf(fpinfo, "Output file name is \"%s\" (\"%s\")\n\n", basename(fout), fout);
     
+    // Process each line in the input file
     while (NULL != fgets(linein, sizeof(linein)-1, fpin)) {
         int mlen;
         char *eptr;
@@ -191,19 +205,23 @@ int main(int argc, char **argv)
         inlines++;
         strcpy(cpy, linein);
         
+        // Parse the current line
         pres = parseLine(cpy, isp, isc, fpinfo);
         if (pres.num_errors > 0) {
             errorCnt += pres.num_errors;
             if (pres.error == E_EMPTY) {
+                // Empty line. Just remove it.
                 printf("Line %d empty. Removed\n", inlines);
                 fprintf(fpinfo, "Line %d empty. Removed\n", inlines);
             }
             else {
+                // Fatal error. Continue to process but don't create output.
                 wout = 0;
             }
             continue;
         }
         else if (pres.spaces > 0) {
+            // Report that spaces were removed but the line otherwise OK.
             char *pl  = (pres.spaces == 1) ? "space" : "spaces";
             int tlc   = (int)strlen(linein)-1;
             char *FMT = (linein[tlc] == '\n') ? "%s%s\n" : "%s\n%s\n";
@@ -217,25 +235,18 @@ int main(int argc, char **argv)
             fprintf(fpinfo, FMT, linein, cpy);
         }
         
+        // Line is now in a known state. Continue processing.
         mlen = (int)strlen(cpy)+1;
         cp   = skipTitle(cpy);
         
-        /* find first comma after title */
-        while ((cp=strchr(cp, ',')) == NULL) {
-            cp++;
-        }
-        *cp = '\0';
-        cp++;
+        // Stomp on comma where skipTitle() left the pointer. Title now a printable string
+        *cp++ = '\0';
         
-        /* we're at the start of the page number field. skip it. */
-        if (!isp)  {
-            while ((cp=strchr(cp, ',')) == NULL) {
-                cp++;
-            }
-            cp++;   //skip comma
-        }
+        // we're at the start of the page number field. Skip it by finding the comma seperator
+        cp = strchr(cp, ',');
+        cp++;   //skip comma
         
-        /* we're at the start of the number of pages field. get it. */
+        // We're at the start of the number of pages field. get it.
         if ((numpages=(int)strtol(cp,&eptr,10)) > 0) {
             if ((*eptr != ',') && (isc && (*eptr != '\n'))) {
                 if (errorCnt++ < MAXPERROR) printf("Line %d: bad number-of-pages field\n%s\n", inlines, linein);
@@ -244,13 +255,16 @@ int main(int argc, char **argv)
                 continue;
             }
             if (wout) {
+                // We think we're outputting so prepare storage for the well formed line.
                 olines[outlines] = calloc(BUFSIZE,1);
                 
+                // Populate the output line.
                 if (!isc) {
                     // skip the number of pages field to retrieve composer
                     cp = strchr(cp,',') + 1;
                     sprintf(olines[outlines],"%s,%d,%d,%s", cpy, curpage, numpages, cp);
                 } else {
+                    // We're using the user-provided Composer string.
                     sprintf(olines[outlines],"%s,%d,%d,\"%s\"\n", cpy, curpage, numpages, defAuthor);
                 }
                 
@@ -261,6 +275,7 @@ int main(int argc, char **argv)
             }
         }
         else {
+            // Bad number of pages. Another fatal error. Don't write output.
             if (errorCnt++ < MAXPERROR) printf("\n\nLine %d: bad number-of-pages field\n%s\n", inlines, linein);
             fprintf(fpinfo, "\n\nLine %d: bad number-of-pages field\n%s\n", inlines, linein);
             wout = 0;
@@ -268,6 +283,7 @@ int main(int argc, char **argv)
         }
     }
     
+    // Done with all the input.
     if (errorCnt > MAXPERROR) printf("%d more errors/warnings...\nSee %s in output directory\n\n", errorCnt, basename(finfo));
     
     if (fpout == NULL) {
@@ -278,6 +294,7 @@ int main(int argc, char **argv)
         if (wout) {
             int i;
             
+            // OK to write the output.
             for (i=0; i<outlines; ++i) {
                 // Bulk Upload will not tolerate an empty line. Kill '\n' at end of last entry (if it's there)
                 if (i == (outlines-1)) {
@@ -288,6 +305,8 @@ int main(int argc, char **argv)
                 }
                 fprintf(fpout, "%s", olines[i]);
             }
+            
+            // Add the extra lines if we're below the minimum and the option was there.
             xtralines = MINLINES - outlines;
             if ((xtralines > 0) && isd)  {
                 int i;
@@ -311,7 +330,7 @@ int main(int argc, char **argv)
     printf("\n%d lines read\n%d lines written\n", inlines, outlines + xtralines);
     fprintf(fpinfo, "\n%d lines read\n%d lines written\n", inlines, outlines + xtralines);
     
-    
+    // We could be below the minumum if the -d option was not specified.
     if (outlines < MINLINES) {
         if (isd) {
             printf("WARNING: Lines in does not meet minimum iGigBook Bulk Upload minimum of %d.\n%d dummy entries written to output to comply\n", MINLINES,xtralines);
@@ -370,18 +389,15 @@ static char *skipTitle(char *line)
 
 
 static void makeofname (char *fin, char *fout, char *finfo) {
-    //char *cp;
-    //long  count;
     
     sprintf(finfo, "%s/%s_%s", dirname(fin), OPINFO, basename(fin));
     sprintf(fout, "%s/%s_%s", dirname(fin), OPUPLD, basename(fin));
     
+// We may eventually eliminate the overwrite protection.
 #ifdef DO_NOT_OVERWRITE
+    
     char *cp    = fout + strlen(dirname(fout))+sizeof(OPUPLD);
     long  count = strtol(cp,NULL,10);
-    
-    //cp    = fout + strlen(dirname(fout))+sizeof(OPUPLD);
-    //count = strtol(cp,NULL,10);
     
     while ((access(fout, F_OK)) != -1) {
         ++count;
