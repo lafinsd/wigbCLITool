@@ -22,7 +22,6 @@
 #define OPT_STRING "A::f:dpc:"
 #define OPT_HIDDEN "utomator"
 
-static char *skipTitle(char *);
 static void  makeofname(char *, char *, char *);
 static void  printBanner(char *);
 
@@ -237,9 +236,10 @@ int main(int argc, char **argv)
         
         // Line is now in a known state. Continue processing.
         mlen = (int)strlen(cpy)+1;
-        cp   = skipTitle(cpy);
         
-        // Stomp on comma where skipTitle() left the pointer. Title now a printable string
+        // Skip title
+        cp = strchr((cpy+1), '"') + 1; // ptr at the ',' past the second '"'
+        // Stomp on comma at ptr. Title now a printable string
         *cp++ = '\0';
         
         // we're at the start of the page number field. Skip it by finding the comma seperator
@@ -371,22 +371,6 @@ static void printBanner(char *myName) {
     printf("%s%s (%s)\n", basename(myName), ETYPE, dts);
     free(d);
 }
-
-static char *skipTitle(char *line)
-{
-    char *cp = line;
-
-    while (*cp != '"')  {
-        cp++;
-    }
-    cp++;
-    while (*cp != '"')  {
-        cp++;
-    }
-
-    return (cp+1);
-}
-
 
 static void makeofname (char *fin, char *fout, char *finfo) {
     
