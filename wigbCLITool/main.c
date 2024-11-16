@@ -125,7 +125,7 @@ int main(int argc, char **argv)
     
     // See if optional output file name is there and if so save it.
     {
-        int diff = argc-optind;
+        int diff = argc - optind;
         
         cp = NULL;
         if (diff != NUMARGS)  {
@@ -243,8 +243,10 @@ int main(int argc, char **argv)
         *cp++ = '\0';
         
         // we're at the start of the page number field. Skip it by finding the comma seperator
-        cp = strchr(cp, ',');
-        cp++;   //skip comma
+        if (!isp) {
+            cp = strchr(cp, ',');
+            cp++;   //skip comma
+        }
         
         // We're at the start of the number of pages field. get it.
         if ((numpages=(int)strtol(cp,&eptr,10)) > 0) {
