@@ -225,7 +225,7 @@ int main(int argc, char **argv)
             int tlc   = (int)strlen(linein)-1;
             char *FMT = (linein[tlc] == '\n') ? "%s%s\n" : "%s\n%s\n";
             
-            errorCnt += pres.spaces;
+            errorCnt++;
             if (errorCnt < MAXPERROR) {
                 printf("%d %s removed from line %d\n", pres.spaces, pl, inlines);
                 printf(FMT, linein, cpy);
@@ -286,7 +286,7 @@ int main(int argc, char **argv)
     }
     
     // Done with all the input.
-    if (errorCnt > MAXPERROR) printf("%d more errors/warnings...\nSee %s in output directory\n\n", errorCnt, basename(finfo));
+    if (errorCnt > MAXPERROR) printf("%d more errors/warnings...\nSee %s in output directory\n\n", (errorCnt-MAXPERROR), basename(finfo));
     
     if (fpout == NULL) {
         printf("%s: cannot open\n", fout);
@@ -335,16 +335,18 @@ int main(int argc, char **argv)
     // We could be below the minumum if the -d option was not specified.
     if (outlines < MINLINES) {
         if (isd) {
-            printf("WARNING: Lines in does not meet minimum iGigBook Bulk Upload minimum of %d.\n%d dummy entries written to output to comply\n", MINLINES,xtralines);
-            fprintf(fpout ,"WARNING: Lines in does not meet minimum iGigBook Bulk Upload minimum of %d.\n%d dummy entries written to output to comply\n", MINLINES, xtralines);
+            printf("WARNING: %d dummy entries written to output to comply with iGigBook minimum of %d\n\n", xtralines, MINLINES);
+            fprintf(fpinfo, "WARNING: %d dummy entries written to output to comply with iGigBook minimum of %d\n\n", xtralines, MINLINES);
         }
         else {
-            printf("WARNING: Lines written does not meet minimum iGigBook Bulk Upload minimum of %d.\n\n", MINLINES);
-            fprintf(fpinfo, "WARNING: Lines written does not meet minimum iGigBook Bulk Upload minimum of %d.\n\n", MINLINES);
+            printf("WARNING: Lines written out does not meet minimum iGigBook Bulk Upload minimum of %d.\nUse the -d option\n\n", MINLINES);
+            fprintf(fpinfo, "WARNING: Lines written out does not meet minimum iGigBook Bulk Upload minimum of %d.\nUse the -d option.\n\n", MINLINES);
         }
     }
 
     fclose (fpin);
+    fclose (fpout);
+    fclose (fpinfo);
     
     exit(0);
 }
