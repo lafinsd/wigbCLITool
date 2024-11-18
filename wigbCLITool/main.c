@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <libgen.h>    // for basename()
+#include <time.h>
 
 #include "igbTool.h"
 
@@ -23,21 +24,23 @@
 #define OPT_HIDDEN "utomator"
 
 static void  makeofname(char *, char *, char *);
-static void  printBanner(char *);
+static void  printBanner(char *, char **);
+static char *getRunTime (void);
 
 extern PARSE_RES parseLine(char *, int, int, FILE *);
 
 int main(int argc, char **argv)
 {
     FILE *fpin, *fpout, *fpinfo;
-    char *fin, *fout, *finfo, *cp, *defAuthor = NULL;
+    char *fin, *fout, *finfo, *cp, *banner, *defAuthor = NULL;
     char  linein[BUFSIZE], cpy[BUFSIZE], *olines[MAXLINES];
     int   numpages;
     int   wout = 1, inlines = 0, outlines = 0, errorCnt = 0;
     int   curpage = INITCP;
     int   isp = 0, isc = 0, isd = 0, isauto = 0, xtralines = 0;
     
-    printBanner(argv[0]);
+
+    printBanner(argv[0], &banner);
     
     {
         int offset, gopt;
@@ -51,7 +54,7 @@ int main(int argc, char **argv)
                      * invocation line to appear in the info file. Guard against accidental
                      * confusion if a bogus option interferes.
                      */
-                    isauto = optind - 1;
+                    isauto = optind - 1;  // Set 'isauto' to index in argv of the option
                     if (optarg == 0) {
                         printf("Illegal option \"%s\"\n", argv[isauto]);
                         printf(USAGE_FMT, basename(argv[0]));
@@ -168,11 +171,12 @@ int main(int argc, char **argv)
     
     // If invoked from Automator print out invocation line in info file.
     if (isauto) {
+        fprintf(fpinfo,"\n%s\n", banner);
         int i;
         
         fprintf (fpinfo, "\n%s", basename(argv[0]));
         for (i=1; i<argc; ++i) {
-            // Don't print out the hidden '-Automator' argument
+            // Don't print out the hidden '-Automator' argument. 'isauto' is the index in argv
             if (i != isauto) {
                 // Surround entries having blanks with "
                 char *cp = strchr(argv[i], ' ');
@@ -184,11 +188,10 @@ int main(int argc, char **argv)
                 }
             }
         }
-        fprintf(fpinfo,"\n\n");
     }
     
-    printf("Output file name is \"%s\" (\"%s\")\n\n", basename(fout), fout);
-    fprintf(fpinfo, "Output file name is \"%s\" (\"%s\")\n\n", basename(fout), fout);
+    printf("\nOutput file name is \"%s\" (\"%s\")\n\n", basename(fout), fout);
+    fprintf(fpinfo, "\nOutput file name is \"%s\" (\"%s\")\n\n", basename(fout), fout);
     
     // Process each line in the input file
     while (NULL != fgets(linein, sizeof(linein)-1, fpin)) {
@@ -351,7 +354,7 @@ int main(int argc, char **argv)
     exit(0);
 }
 
-static void printBanner(char *myName) {
+static void printBanner(char *myName, char **banner) {
 #define __MONTH__ (\
     __DATE__[2] == 'n' ? (__DATE__[1] == 'a' ? "1" : "6") \
     : __DATE__[2] == 'b' ? "2" \
@@ -365,15 +368,20 @@ static void printBanner(char *myName) {
     : "12")
     int   idx;
     char  dts[50];
-    char *d = malloc(sizeof(__DATE__));
+    char *rt, *d = malloc(sizeof(__DATE__));
+    
+    *banner = malloc(BUFSIZE);
+    rt = getRunTime();
     
     strcpy(d,__DATE__);
     d[6] = '\0';
     idx  = (d[4] != ' ') ? 4 : 5;
     
-    sprintf(dts, "%s/%s/%sT%s",&d[7], __MONTH__, &d[idx], __TIME__);
-    printf("%s%s (%s)\n", basename(myName), ETYPE, dts);
+    sprintf(dts, "%s-%s-%sT%s",&d[7], __MONTH__, &d[idx], __TIME__);
+    sprintf(*banner, "%s%s (%s  %s)", basename(myName), ETYPE, dts, rt);
+    printf("%s\n", *banner);
     free(d);
+    free(rt);
 }
 
 static void makeofname (char *fin, char *fout, char *finfo) {
@@ -394,4 +402,14 @@ static void makeofname (char *fin, char *fout, char *finfo) {
     }
 #endif
     return;
+}
+
+static char *getRunTime (void) {
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+    char *rt = malloc(BUFSIZE);
+    
+    sprintf(rt, "%d-%02d-%02d %02d:%02d:%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+    
+    return rt;
 }
