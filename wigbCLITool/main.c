@@ -27,16 +27,14 @@ static void  makeofname(char *, char *, char *);
 static void  printBanner(char *, char **);
 static char *getRunTime (void);
 
-extern PARSE_RES parseLine(char *, int, int, FILE *);
-
 int main(int argc, char **argv)
 {
     FILE *fpin, *fpout, *fpinfo;
     char *fin, *fout, *finfo, *cp, *banner, *defAuthor = NULL;
-    char  linein[BUFSIZE], cpy[BUFSIZE], *olines[MAXLINES];
-    int   numpages;
+    char  /*linein[BUFSIZE], cpy[BUFSIZE],*/ *olines[MAXLINES];
+   // int   numpages;
     int   wout = 1, inlines = 0, outlines = 0, errorCnt = 0;
-    int   curpage = INITCP;
+    int   initpage = INITCP;//curpage = INITCP;
     int   isp = 0, isc = 0, isd = 0, isauto = 0, xtralines = 0;
     
 
@@ -74,11 +72,11 @@ int main(int argc, char **argv)
                     errno  = 0;
                     offset = (int)strtol(optarg,NULL,10);
                     if (offset > 0) {
-                        if (curpage != INITCP) {
+                        if (initpage != INITCP) {
                             printf("Multiple non-zero offsets specified\n");
                             exit (-1);
                         }
-                        curpage += offset;
+                        initpage += offset;
                     }
                     else if (offset == 0) {
                         if (errno != 0) {
@@ -193,11 +191,16 @@ int main(int argc, char **argv)
     printf("\nOutput file name is \"%s\" (\"%s\")\n\n", basename(fout), fout);
     fprintf(fpinfo, "\nOutput file name is \"%s\" (\"%s\")\n\n", basename(fout), fout);
     
+    processSrcFile(initpage, isp, isc, &wout, olines, defAuthor, fpin, fpinfo);
+    
     // Process each line in the input file
+/*    char linein[BUFSIZE];
     while (NULL != fgets(linein, sizeof(linein)-1, fpin)) {
         int mlen;
         char *eptr;
         PARSE_RES pres;
+        int numpages, curpage = initpage;
+        char cpy[BUFSIZE];
         
         if (inlines == MAXLINES) {
             printf("WARNING: Lines read exceeds iGigBook upload limit of %d\nNo more input processed.\n\n", MAXLINES);
@@ -286,7 +289,7 @@ int main(int argc, char **argv)
             wout = 0;
             continue;
         }
-    }
+    }*/
     
     // Done with all the input.
     if (errorCnt > MAXPERROR) printf("%d more errors/warnings...\nSee %s in output directory\n\n", (errorCnt-MAXPERROR), basename(finfo));
@@ -382,6 +385,7 @@ static void printBanner(char *myName, char **banner) {
     printf("%s\n", *banner);
     free(d);
     free(rt);
+    return;
 }
 
 static void makeofname (char *fin, char *fout, char *finfo) {

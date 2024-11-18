@@ -23,3 +23,6 @@ typedef struct {
     int   num_errors;
     ETYPE error;
 } PARSE_RES;
+
+PARSE_RES parseLine(char *, int, int, FILE *);
+int processSrcFile(int, int, int, int *, char **, char *, FILE *, FILE *);
