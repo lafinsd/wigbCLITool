@@ -10,14 +10,13 @@
 #include <stdlib.h>
 #include "igbTool.h"
 
-int processSrcFile(int initpage, int isp, int isc, int *wout, char **olines, char *defAuthor, FILE *fpin, FILE *fpinfo) {
-    char linein[BUFSIZE];
+int processSrcFile(int initpage, int isp, int isc, int *wout, char *olines[], char *defAuthor, FILE *fpin, FILE *fpinfo) {
+    char linein[BUFSIZE], cpy[BUFSIZE];
     int  outlines = 0, inlines = 0;
     int mlen, errorCnt = 0;
-    char *eptr;
+    char *eptr, *cp;
     PARSE_RES pres;
     int numpages, curpage = initpage;
-    char *cp, cpy[BUFSIZE];
     
     while (NULL != fgets(linein, sizeof(linein)-1, fpin)) {
         if (inlines == MAXLINES) {
@@ -108,5 +107,6 @@ int processSrcFile(int initpage, int isp, int isc, int *wout, char **olines, cha
             continue;
         }
     }
+    
     return 0;
 }

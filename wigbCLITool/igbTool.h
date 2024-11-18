@@ -24,5 +24,22 @@ typedef struct {
     ETYPE error;
 } PARSE_RES;
 
+typedef struct {
+    int   initpage;
+    int   isc;
+    int   isp;
+    char *defAuthor;
+    char *olines[MAXLINES];
+    FILE *fpin;
+    FILE *fpinfo;
+} PRF_INP;
+
+typedef struct {
+    int wout;
+    int inlines;
+    int outlines;
+} PRF_OUTP;
+
 PARSE_RES parseLine(char *, int, int, FILE *);
-int processSrcFile(int, int, int, int *, char **, char *, FILE *, FILE *);
+int processSrcFile(int, int, int, int *, char *[], char *, FILE *, FILE *);
+//int processSrcFile(PRF_INP *, int *, char *[]);
