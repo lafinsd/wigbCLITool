@@ -10,35 +10,37 @@
 #include <stdlib.h>
 #include "igbTool.h"
 
-int processSrcFile(int initpage, int isp, int isc, int *wout, char *olines[], char *defAuthor, FILE *fpin, FILE *fpinfo) {
+PRF_OUTP processSrcFile(PRF_INP *pinp) {
     char linein[BUFSIZE], cpy[BUFSIZE];
-    int  outlines = 0, inlines = 0;
-    int mlen, errorCnt = 0;
+    int mlen;
     char *eptr, *cp;
+    int numpages, curpage = pinp->initpage;
     PARSE_RES pres;
-    int numpages, curpage = initpage;
+    PRF_OUTP  prf = {0};
     
-    while (NULL != fgets(linein, sizeof(linein)-1, fpin)) {
-        if (inlines == MAXLINES) {
+    prf.wout = 1;
+    
+    while (NULL != fgets(linein, sizeof(linein)-1, pinp->fpin)) {
+        if (prf.inlines == MAXLINES) {
             printf("WARNING: Lines read exceeds iGigBook upload limit of %d\nNo more input processed.\n\n", MAXLINES);
-            fprintf(fpinfo, "WARNING: Lines read exceeds iGigBook upload limit of %d\nNo more input processed.\n\n", MAXLINES);
+            fprintf(pinp->fpinfo, "WARNING: Lines read exceeds iGigBook upload limit of %d\nNo more input processed.\n\n", MAXLINES);
             break;
         }
-        inlines++;
+        prf.inlines++;
         strcpy(cpy, linein);
         
         // Parse the current line
-        pres = parseLine(cpy, isp, isc, fpinfo);
+        pres = parseLine(cpy, pinp->isp, pinp->isc, pinp->fpinfo);
         if (pres.num_errors > 0) {
-            errorCnt += pres.num_errors;
+            prf.errorCnt += pres.num_errors;
             if (pres.error == E_EMPTY) {
                 // Empty line. Just remove it.
-                printf("Line %d empty. Removed\n", inlines);
-                fprintf(fpinfo, "Line %d empty. Removed\n", inlines);
+                printf("Line %d empty. Removed\n", prf.inlines);
+                fprintf(pinp->fpinfo, "Line %d empty. Removed\n", prf.inlines);
             }
             else {
                 // Fatal error. Continue to process but don't create output.
-                *wout = 0;
+                prf.wout = 0;
             }
             continue;
         }
@@ -48,13 +50,13 @@ int processSrcFile(int initpage, int isp, int isc, int *wout, char *olines[], ch
             int tlc   = (int)strlen(linein)-1;
             char *FMT = (linein[tlc] == '\n') ? "%s%s\n" : "%s\n%s\n";
             
-            errorCnt++;
-            if (errorCnt < MAXPERROR) {
-                printf("%d %s removed from line %d\n", pres.spaces, pl, inlines);
+            prf.errorCnt++;
+            if (prf.errorCnt < MAXPERROR) {
+                printf("%d %s removed from line %d\n", pres.spaces, pl, prf.inlines);
                 printf(FMT, linein, cpy);
             }
-            fprintf(fpinfo, "%d %s removed from line %d\n", pres.spaces, pl, inlines);
-            fprintf(fpinfo, FMT, linein, cpy);
+            fprintf(pinp->fpinfo, "%d %s removed from line %d\n", pres.spaces, pl, prf.inlines);
+            fprintf(pinp->fpinfo, FMT, linein, cpy);
         }
         
         // Line is now in a known state. Continue processing.
@@ -66,47 +68,47 @@ int processSrcFile(int initpage, int isp, int isc, int *wout, char *olines[], ch
         *cp++ = '\0';
         
         // we're at the start of the page number field. Skip it by finding the comma seperator
-        if (!isp) {
+        if (!pinp->isp) {
             cp = strchr(cp, ',');
             cp++;   //skip comma
         }
         
         // We're at the start of the number of pages field. get it.
         if ((numpages=(int)strtol(cp,&eptr,10)) > 0) {
-            if ((*eptr != ',') && (isc && (*eptr != '\n'))) {
-                if (errorCnt++ < MAXPERROR) printf("Line %d: bad number-of-pages field\n%s\n", inlines, linein);
-                fprintf(fpinfo, "Line %d: bad number-of-pages field\n%s\n", inlines, linein);
-                *wout = 0;
+            if ((*eptr != ',') && (pinp->isc && (*eptr != '\n'))) {
+                if (prf.errorCnt++ < MAXPERROR) printf("Line %d: bad number-of-pages field\n%s\n", prf.inlines, linein);
+                fprintf(pinp->fpinfo, "Line %d: bad number-of-pages field\n%s\n", prf.inlines, linein);
+                prf.wout = 0;
                 continue;
             }
-            if (*wout) {
+            if (prf.wout) {
                 // We think we're outputting so prepare storage for the well formed line.
-                olines[outlines] = calloc(BUFSIZE,1);
+                pinp->olines[prf.outlines] = calloc(BUFSIZE,1);
                 
                 // Populate the output line.
-                if (!isc) {
+                if (!pinp->isc) {
                     // skip the number of pages field to retrieve composer
                     cp = strchr(cp,',') + 1;
-                    sprintf(olines[outlines],"%s,%d,%d,%s", cpy, curpage, numpages, cp);
+                    sprintf(pinp->olines[prf.outlines],"%s,%d,%d,%s", cpy, curpage, numpages, cp);
                 } else {
                     // We're using the user-provided Composer string.
-                    sprintf(olines[outlines],"%s,%d,%d,\"%s\"\n", cpy, curpage, numpages, defAuthor);
+                    sprintf(pinp->olines[prf.outlines],"%s,%d,%d,\"%s\"\n", cpy, curpage, numpages, pinp->defAuthor);
                 }
                 
                 // return unneeded memory
-                olines[outlines] = realloc(olines[outlines], strlen(olines[outlines])+1);
+                pinp->olines[prf.outlines] = realloc(pinp->olines[prf.outlines], strlen(pinp->olines[prf.outlines])+1);
                 curpage += numpages;
-                outlines++;
+                prf.outlines++;
             }
         }
         else {
             // Bad number of pages. Another fatal error. Don't write output.
-            if (errorCnt++ < MAXPERROR) printf("\n\nLine %d: bad number-of-pages field\n%s\n", inlines, linein);
-            fprintf(fpinfo, "\n\nLine %d: bad number-of-pages field\n%s\n", inlines, linein);
-            *wout = 0;
+            if (prf.errorCnt++ < MAXPERROR) printf("\n\nLine %d: bad number-of-pages field\n%s\n", prf.inlines, linein);
+            fprintf(pinp->fpinfo, "\n\nLine %d: bad number-of-pages field\n%s\n", prf.inlines, linein);
+            prf.wout = 0;
             continue;
         }
     }
     
-    return 0;
+    return prf;
 }

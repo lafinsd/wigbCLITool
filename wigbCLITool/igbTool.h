@@ -35,11 +35,12 @@ typedef struct {
 } PRF_INP;
 
 typedef struct {
-    int wout;
     int inlines;
     int outlines;
+    int errorCnt;
+    int wout;
 } PRF_OUTP;
 
 PARSE_RES parseLine(char *, int, int, FILE *);
-int processSrcFile(int, int, int, int *, char *[], char *, FILE *, FILE *);
+PRF_OUTP  processSrcFile(PRF_INP *);
 //int processSrcFile(PRF_INP *, int *, char *[]);

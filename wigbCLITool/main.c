@@ -29,15 +29,14 @@ static char *getRunTime (void);
 
 int main(int argc, char **argv)
 {
-    FILE *fpin, *fpout, *fpinfo;
-    char *fin, *fout, *finfo, *cp, *banner, *defAuthor = NULL;
-    char  /*linein[BUFSIZE], cpy[BUFSIZE],*/ *olines[MAXLINES];
-   // int   numpages;
-    int   wout = 1, inlines = 0, outlines = 0, errorCnt = 0;
-    int   initpage = INITCP;//curpage = INITCP;
-    int   isp = 0, isc = 0, isd = 0, isauto = 0, xtralines = 0;
+    FILE *fpout;
+    char *fin, *fout, *finfo, *cp, *banner;
+    int isd = 0, isauto = 0, xtralines = 0;
+    PRF_INP pinp = {0};
+    PRF_OUTP prfout;
     
-
+    pinp.initpage = INITCP;
+    
     printBanner(argv[0], &banner);
     
     {
@@ -72,11 +71,11 @@ int main(int argc, char **argv)
                     errno  = 0;
                     offset = (int)strtol(optarg,NULL,10);
                     if (offset > 0) {
-                        if (initpage != INITCP) {
+                        if (pinp.initpage != INITCP) {
                             printf("Multiple non-zero offsets specified\n");
                             exit (-1);
                         }
-                        initpage += offset;
+                        pinp.initpage += offset;
                     }
                     else if (offset == 0) {
                         if (errno != 0) {
@@ -99,14 +98,14 @@ int main(int argc, char **argv)
                 
                 case 'p':
                     // No dummy page numbers in source file
-                    isp = 1;
+                    pinp.isp = 1;
                     break;
                 
                 case 'c':
                     // Composer name provided
-                    defAuthor = calloc((strlen(optarg)+1),1);
-                    strcpy(defAuthor, optarg);
-                    isc = 1;
+                    pinp.defAuthor = calloc((strlen(optarg)+1),1);
+                    strcpy(pinp.defAuthor, optarg);
+                    pinp.isc = 1;
                     break;
                 
                 case '?':
@@ -119,9 +118,9 @@ int main(int argc, char **argv)
     }
     
     // populate composer string if one wasn't provided
-    if (!isc) {
-        defAuthor = calloc((strlen(DEFAUTHOR)+1),1);
-        strcpy(defAuthor, DEFAUTHOR);
+    if (!pinp.isc) {
+        pinp.defAuthor = calloc((strlen(DEFAUTHOR)+1),1);
+        strcpy(pinp.defAuthor, DEFAUTHOR);
     }
     
     // See if optional output file name is there and if so save it.
@@ -142,7 +141,7 @@ int main(int argc, char **argv)
     
     fin = argv[optind];
     
-    if ((fpin = fopen(fin, "r")) == NULL) {
+    if ((pinp.fpin = fopen(fin, "r")) == NULL) {
         printf("%s: file  not found\n", fin);
         exit(1);
     }
@@ -164,162 +163,68 @@ int main(int argc, char **argv)
         sprintf(finfo, "%s/%s_%s", dirname(fin), OPINFO, cp);
     }
     
-    fpinfo = fopen(finfo, "w+");
-    fpout  = fopen(fout, "w+");
+    pinp.fpinfo = fopen(finfo, "w+");
+    fpout = fopen(fout, "w+");
+    
+    fprintf(pinp.fpinfo,"\n%s\n", banner); // banner in inof file
     
     // If invoked from Automator print out invocation line in info file.
     if (isauto) {
-        fprintf(fpinfo,"\n%s\n", banner);
+        
         int i;
         
-        fprintf (fpinfo, "\n%s", basename(argv[0]));
+        fprintf (pinp.fpinfo, "\n%s", basename(argv[0]));
         for (i=1; i<argc; ++i) {
             // Don't print out the hidden '-Automator' argument. 'isauto' is the index in argv
             if (i != isauto) {
                 // Surround entries having blanks with "
                 char *cp = strchr(argv[i], ' ');
                 if (cp == NULL) {
-                    fprintf (fpinfo, " %s", argv[i]);
+                    fprintf (pinp.fpinfo, " %s", argv[i]);
                 }
                 else {
-                    fprintf (fpinfo, " \"%s\"", argv[i]);
+                    fprintf (pinp.fpinfo, " \"%s\"", argv[i]);
                 }
             }
         }
     }
     
     printf("\nOutput file name is \"%s\" (\"%s\")\n\n", basename(fout), fout);
-    fprintf(fpinfo, "\nOutput file name is \"%s\" (\"%s\")\n\n", basename(fout), fout);
-    
-    processSrcFile(initpage, isp, isc, &wout, olines, defAuthor, fpin, fpinfo);
+    fprintf(pinp.fpinfo, "\nOutput file name is \"%s\" (\"%s\")\n\n", basename(fout), fout);
     
     // Process each line in the input file
-/*    char linein[BUFSIZE];
-    while (NULL != fgets(linein, sizeof(linein)-1, fpin)) {
-        int mlen;
-        char *eptr;
-        PARSE_RES pres;
-        int numpages, curpage = initpage;
-        char cpy[BUFSIZE];
-        
-        if (inlines == MAXLINES) {
-            printf("WARNING: Lines read exceeds iGigBook upload limit of %d\nNo more input processed.\n\n", MAXLINES);
-            fprintf(fpinfo, "WARNING: Lines read exceeds iGigBook upload limit of %d\nNo more input processed.\n\n", MAXLINES);
-            break;
-        }
-        inlines++;
-        strcpy(cpy, linein);
-        
-        // Parse the current line
-        pres = parseLine(cpy, isp, isc, fpinfo);
-        if (pres.num_errors > 0) {
-            errorCnt += pres.num_errors;
-            if (pres.error == E_EMPTY) {
-                // Empty line. Just remove it.
-                printf("Line %d empty. Removed\n", inlines);
-                fprintf(fpinfo, "Line %d empty. Removed\n", inlines);
-            }
-            else {
-                // Fatal error. Continue to process but don't create output.
-                wout = 0;
-            }
-            continue;
-        }
-        else if (pres.spaces > 0) {
-            // Report that spaces were removed but the line otherwise OK.
-            char *pl  = (pres.spaces == 1) ? "space" : "spaces";
-            int tlc   = (int)strlen(linein)-1;
-            char *FMT = (linein[tlc] == '\n') ? "%s%s\n" : "%s\n%s\n";
-            
-            errorCnt++;
-            if (errorCnt < MAXPERROR) {
-                printf("%d %s removed from line %d\n", pres.spaces, pl, inlines);
-                printf(FMT, linein, cpy);
-            }
-            fprintf(fpinfo, "%d %s removed from line %d\n", pres.spaces, pl, inlines);
-            fprintf(fpinfo, FMT, linein, cpy);
-        }
-        
-        // Line is now in a known state. Continue processing.
-        mlen = (int)strlen(cpy)+1;
-        
-        // Skip title
-        cp = strchr((cpy+1), '"') + 1; // ptr at the ',' past the second '"'
-        // Stomp on comma at ptr. Title now a printable string
-        *cp++ = '\0';
-        
-        // we're at the start of the page number field. Skip it by finding the comma seperator
-        if (!isp) {
-            cp = strchr(cp, ',');
-            cp++;   //skip comma
-        }
-        
-        // We're at the start of the number of pages field. get it.
-        if ((numpages=(int)strtol(cp,&eptr,10)) > 0) {
-            if ((*eptr != ',') && (isc && (*eptr != '\n'))) {
-                if (errorCnt++ < MAXPERROR) printf("Line %d: bad number-of-pages field\n%s\n", inlines, linein);
-                fprintf(fpinfo, "Line %d: bad number-of-pages field\n%s\n", inlines, linein);
-                wout = 0;
-                continue;
-            }
-            if (wout) {
-                // We think we're outputting so prepare storage for the well formed line.
-                olines[outlines] = calloc(BUFSIZE,1);
-                
-                // Populate the output line.
-                if (!isc) {
-                    // skip the number of pages field to retrieve composer
-                    cp = strchr(cp,',') + 1;
-                    sprintf(olines[outlines],"%s,%d,%d,%s", cpy, curpage, numpages, cp);
-                } else {
-                    // We're using the user-provided Composer string.
-                    sprintf(olines[outlines],"%s,%d,%d,\"%s\"\n", cpy, curpage, numpages, defAuthor);
-                }
-                
-                // return unneeded memory
-                olines[outlines] = realloc(olines[outlines], strlen(olines[outlines])+1);
-                curpage += numpages;
-                outlines++;
-            }
-        }
-        else {
-            // Bad number of pages. Another fatal error. Don't write output.
-            if (errorCnt++ < MAXPERROR) printf("\n\nLine %d: bad number-of-pages field\n%s\n", inlines, linein);
-            fprintf(fpinfo, "\n\nLine %d: bad number-of-pages field\n%s\n", inlines, linein);
-            wout = 0;
-            continue;
-        }
-    }*/
+    prfout = processSrcFile(&pinp);
     
     // Done with all the input.
-    if (errorCnt > MAXPERROR) printf("%d more errors/warnings...\nSee %s in output directory\n\n", (errorCnt-MAXPERROR), basename(finfo));
+    if (prfout.errorCnt > MAXPERROR) printf("%d more errors/warnings...\nSee %s in output directory\n\n", (prfout.errorCnt-MAXPERROR), basename(finfo));
     
     if (fpout == NULL) {
         printf("%s: cannot open\n", fout);
-        fprintf(fpinfo, "%s: cannot open\n", fout);
-        outlines = 0;
-    } else {
-        if (wout) {
+        fprintf(pinp.fpinfo, "%s: cannot open\n", fout);
+        prfout.outlines = 0;
+    }
+    else {
+        if (prfout.wout) {
             int i;
             
             // OK to write the output.
-            for (i=0; i<outlines; ++i) {
+            for (i=0; i<prfout.outlines; ++i) {
                 // Bulk Upload will not tolerate an empty line. Kill '\n' at end of last entry (if it's there)
-                if (i == (outlines-1)) {
-                    char *cp = strchr(olines[i],'\n');
+                if (i == (prfout.outlines-1)) {
+                    char *cp = strchr(pinp.olines[i],'\n');
                     if (cp != NULL) {
                         *cp = '\0';
                     }
                 }
-                fprintf(fpout, "%s", olines[i]);
+                fprintf(fpout, "%s", pinp.olines[i]);
             }
             
             // Add the extra lines if we're below the minimum and the option was there.
-            xtralines = MINLINES - outlines;
+            xtralines = MINLINES - prfout.outlines;
             if ((xtralines > 0) && isd)  {
                 int i;
                 
-                if (outlines) fprintf(fpout,"\n");        // Current last line is missing '\n'
+                if (prfout.outlines) fprintf(fpout,"\n");        // Current last line is missing '\n'
                 for (i=0; i<(xtralines-1); ++i) {
                     fprintf(fpout, "%s%d\",999,1,\"[Author]\"\n", DUMMY_NAME,i);
                 }
@@ -329,30 +234,30 @@ int main(int argc, char **argv)
         }
         else {
             fprintf(fpout, "\nNo lines written.\nSee %s for information\n", basename(finfo));
-            outlines = 0;
+            prfout.outlines = 0;
         }
     }
     
     xtralines = ((xtralines > 0) && isd) ? xtralines : 0;
 
-    printf("\n%d lines read\n%d lines written\n", inlines, outlines + xtralines);
-    fprintf(fpinfo, "\n%d lines read\n%d lines written\n", inlines, outlines + xtralines);
+    printf("\n%d lines read\n%d lines written\n", prfout.inlines, prfout.outlines + xtralines);
+    fprintf(pinp.fpinfo, "\n%d lines read\n%d lines written\n", prfout.inlines, prfout.outlines + xtralines);
     
     // We could be below the minumum if the -d option was not specified.
-    if (outlines < MINLINES) {
+    if (prfout.outlines < MINLINES) {
         if (isd) {
             printf("WARNING: %d dummy entries written to output to comply with iGigBook minimum of %d\n\n", xtralines, MINLINES);
-            fprintf(fpinfo, "WARNING: %d dummy entries written to output to comply with iGigBook minimum of %d\n\n", xtralines, MINLINES);
+            fprintf(pinp.fpinfo, "WARNING: %d dummy entries written to output to comply with iGigBook minimum of %d\n\n", xtralines, MINLINES);
         }
         else {
             printf("WARNING: Lines written out does not meet minimum iGigBook Bulk Upload minimum of %d.\nUse the -d option\n\n", MINLINES);
-            fprintf(fpinfo, "WARNING: Lines written out does not meet minimum iGigBook Bulk Upload minimum of %d.\nUse the -d option.\n\n", MINLINES);
+            fprintf(pinp.fpinfo, "WARNING: Lines written out does not meet minimum iGigBook Bulk Upload minimum of %d.\nUse the -d option.\n\n", MINLINES);
         }
     }
 
-    fclose (fpin);
+    fclose (pinp.fpin);
     fclose (fpout);
-    fclose (fpinfo);
+    fclose (pinp.fpinfo);
     
     exit(0);
 }
