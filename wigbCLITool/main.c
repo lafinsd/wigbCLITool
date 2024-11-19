@@ -14,7 +14,7 @@
 
 #define OPUPLD     "BlkUpld"
 #define OPINFO     "info"
-#define ETYPE      "(b1.1)"
+#define ETYPE      "(2.0)"
 #define DUMMY_NAME "\"ZZSong"
 
 #define USAGE_FMT  "Usage: %s [-d] [-p] [-c<\"Composer\">] [-f<offset>] <infile> [outfile]\n"
