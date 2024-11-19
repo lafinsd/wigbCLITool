@@ -31,7 +31,7 @@
       shouldAutocreateTestPlan = "YES">
    </TestAction>
    <LaunchAction
-      buildConfiguration = "Debug"
+      buildConfiguration = "Release"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
@@ -41,11 +41,8 @@
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES"
       viewDebuggingEnabled = "No">
-      <PathRunnable
-         runnableDebuggingMode = "0"
-         FilePath = "/Users/lafMBAir/Library/Developer/Xcode/DerivedData/wigbCLITool-dlvnniqcwdgtrofnarvqqsehijxh/Build/Products/Debug/wigbCLITool">
-      </PathRunnable>
-      <MacroExpansion>
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "83D362682CACC48D002E909A"
@@ -53,7 +50,7 @@
             BlueprintName = "wigbCLITool"
             ReferencedContainer = "container:wigbCLITool.xcodeproj">
          </BuildableReference>
-      </MacroExpansion>
+      </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
             argument = "-p"
@@ -81,7 +78,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-d"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-d"
@@ -113,15 +110,15 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "&quot;/Users/Shared/MyRoot/temp/temp/igb/BorgoBookcopy copy.txt&quot;"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/Shared/MyRoot/temp/temp/igb/expBB.txt"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/Shared/MyRoot/temp/temp/igb/nopagen.txt"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/Shared/MyRoot/temp/temp/igb/noauth.txt"
@@ -133,10 +130,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/Shared/MyRoot/temp/temp/igb/nothing.txt"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "2"
+            argument = "&quot;fooout file&quot;"
             isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>

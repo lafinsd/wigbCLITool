@@ -9,8 +9,6 @@
 
 #include "igbTool.h"
 
-#define DO_NOT_OVERWRITE
-
 #define NUMARGS    1
 #define INITCP     1
 
@@ -29,12 +27,11 @@ static char *getRunTime (void);
 
 int main(int argc, char **argv)
 {
-    //FILE *fpout;
-    char /* *fin, *fout, *finfo,*/ *cp, *banner;
+    char *cp, *banner;
     int isd = 0, isauto = 0, xtralines = 0;
-    PRF_INP pinp = {0};
-    PRF_OUTP prfout;
     FINFO fin, fout, finfo;
+    PRF_INP pinp    = {0};
+    PRF_OUTP prfout = {0};
     
     pinp.initpage = INITCP;
     
@@ -148,9 +145,16 @@ int main(int argc, char **argv)
     }
     
     if (cp == NULL) {
+#ifdef DO_NOT_OVERWRITE
+        // room for '9999', '_', and '/'
+        int xtra = 6;
+#else
+        // room for '_', and '/'
+        int xtra = 2;
+#endif
         // Optional output file name not there. Use default output file names.
-        fout.fname = /*fout  =*/malloc(strlen(fin.fname) + (strlen(OPUPLD) + 6));    // room for '9999', '_', and '/'
-        finfo.fname = malloc(strlen(fin.fname) + (strlen(OPINFO) + 6));    // room for '9999', '_', and '/'
+        fout.fname  = malloc(strlen(fin.fname) + (strlen(OPUPLD) + xtra));
+        finfo.fname = malloc(strlen(fin.fname) + (strlen(OPINFO) + xtra));
         makeofname(fin.fname, fout.fname, finfo.fname);
     }
     else {

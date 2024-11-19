@@ -39,10 +39,10 @@ typedef struct {
 } PRF_INP;
 
 typedef struct {
-    int inlines;
-    int outlines;
-    int errorCnt;
-    int wout;
+    int   inlines;
+    int   outlines;
+    int   errorCnt;
+    int   wout;
     char *olines[MAXLINES];
 } PRF_OUTP;
 
