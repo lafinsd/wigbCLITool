@@ -81,7 +81,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-d"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-d"
@@ -108,6 +108,10 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "foo"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "&quot;/Users/Shared/MyRoot/temp/temp/igb/BorgoBookcopy copy.txt&quot;"
             isEnabled = "NO">
          </CommandLineArgument>
@@ -132,7 +136,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "2"
+            argument = "&quot;fooout file&quot;"
             isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>

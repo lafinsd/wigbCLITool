@@ -23,3 +23,28 @@ typedef struct {
     int   num_errors;
     ETYPE error;
 } PARSE_RES;
+
+typedef struct {
+    char *fname;
+    FILE *fp;
+} FINFO;
+
+typedef struct {
+    int   initpage;
+    int   isc;
+    int   isp;
+    char *defAuthor;
+    FINFO fin;
+    FINFO finfo;
+} PRF_INP;
+
+typedef struct {
+    int   inlines;
+    int   outlines;
+    int   errorCnt;
+    int   wout;
+    char *olines[MAXLINES];
+} PRF_OUTP;
+
+PARSE_RES parseLine(char *, int, int, FILE *);
+PRF_OUTP  processSrcFile(PRF_INP *);
