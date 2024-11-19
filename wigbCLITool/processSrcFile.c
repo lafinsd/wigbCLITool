@@ -20,23 +20,23 @@ PRF_OUTP processSrcFile(PRF_INP *pinp) {
     
     prf.wout = 1;
     
-    while (NULL != fgets(linein, sizeof(linein)-1, pinp->fpin)) {
+    while (NULL != fgets(linein, sizeof(linein)-1, pinp->fin.fp)) {
         if (prf.inlines == MAXLINES) {
             printf("WARNING: Lines read exceeds iGigBook upload limit of %d\nNo more input processed.\n\n", MAXLINES);
-            fprintf(pinp->fpinfo, "WARNING: Lines read exceeds iGigBook upload limit of %d\nNo more input processed.\n\n", MAXLINES);
+            fprintf(pinp->finfo.fp, "WARNING: Lines read exceeds iGigBook upload limit of %d\nNo more input processed.\n\n", MAXLINES);
             break;
         }
         prf.inlines++;
         strcpy(cpy, linein);
         
         // Parse the current line
-        pres = parseLine(cpy, pinp->isp, pinp->isc, pinp->fpinfo);
+        pres = parseLine(cpy, pinp->isp, pinp->isc, pinp->finfo.fp);
         if (pres.num_errors > 0) {
             prf.errorCnt += pres.num_errors;
             if (pres.error == E_EMPTY) {
                 // Empty line. Just remove it.
                 printf("Line %d empty. Removed\n", prf.inlines);
-                fprintf(pinp->fpinfo, "Line %d empty. Removed\n", prf.inlines);
+                fprintf(pinp->finfo.fp, "Line %d empty. Removed\n", prf.inlines);
             }
             else {
                 // Fatal error. Continue to process but don't create output.
@@ -55,8 +55,8 @@ PRF_OUTP processSrcFile(PRF_INP *pinp) {
                 printf("%d %s removed from line %d\n", pres.spaces, pl, prf.inlines);
                 printf(FMT, linein, cpy);
             }
-            fprintf(pinp->fpinfo, "%d %s removed from line %d\n", pres.spaces, pl, prf.inlines);
-            fprintf(pinp->fpinfo, FMT, linein, cpy);
+            fprintf(pinp->finfo.fp, "%d %s removed from line %d\n", pres.spaces, pl, prf.inlines);
+            fprintf(pinp->finfo.fp, FMT, linein, cpy);
         }
         
         // Line is now in a known state. Continue processing.
@@ -77,7 +77,7 @@ PRF_OUTP processSrcFile(PRF_INP *pinp) {
         if ((numpages=(int)strtol(cp,&eptr,10)) > 0) {
             if ((*eptr != ',') && (pinp->isc && (*eptr != '\n'))) {
                 if (prf.errorCnt++ < MAXPERROR) printf("Line %d: bad number-of-pages field\n%s\n", prf.inlines, linein);
-                fprintf(pinp->fpinfo, "Line %d: bad number-of-pages field\n%s\n", prf.inlines, linein);
+                fprintf(pinp->finfo.fp, "Line %d: bad number-of-pages field\n%s\n", prf.inlines, linein);
                 prf.wout = 0;
                 continue;
             }
@@ -104,7 +104,7 @@ PRF_OUTP processSrcFile(PRF_INP *pinp) {
         else {
             // Bad number of pages. Another fatal error. Don't write output.
             if (prf.errorCnt++ < MAXPERROR) printf("\n\nLine %d: bad number-of-pages field\n%s\n", prf.inlines, linein);
-            fprintf(pinp->fpinfo, "\n\nLine %d: bad number-of-pages field\n%s\n", prf.inlines, linein);
+            fprintf(pinp->finfo.fp, "\n\nLine %d: bad number-of-pages field\n%s\n", prf.inlines, linein);
             prf.wout = 0;
             continue;
         }

@@ -25,13 +25,18 @@ typedef struct {
 } PARSE_RES;
 
 typedef struct {
+    char *fname;
+    FILE *fp;
+} FINFO;
+
+typedef struct {
     int   initpage;
     int   isc;
     int   isp;
     char *defAuthor;
     char *olines[MAXLINES];
-    FILE *fpin;
-    FILE *fpinfo;
+    FINFO fin;
+    FINFO finfo;
 } PRF_INP;
 
 typedef struct {
@@ -43,4 +48,3 @@ typedef struct {
 
 PARSE_RES parseLine(char *, int, int, FILE *);
 PRF_OUTP  processSrcFile(PRF_INP *);
-//int processSrcFile(PRF_INP *, int *, char *[]);

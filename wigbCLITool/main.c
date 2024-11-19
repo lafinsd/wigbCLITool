@@ -29,11 +29,12 @@ static char *getRunTime (void);
 
 int main(int argc, char **argv)
 {
-    FILE *fpout;
-    char *fin, *fout, *finfo, *cp, *banner;
+    //FILE *fpout;
+    char /* *fin, *fout, *finfo,*/ *cp, *banner;
     int isd = 0, isauto = 0, xtralines = 0;
     PRF_INP pinp = {0};
     PRF_OUTP prfout;
+    FINFO fin, fout, finfo;
     
     pinp.initpage = INITCP;
     
@@ -139,68 +140,71 @@ int main(int argc, char **argv)
         }
     }
     
-    fin = argv[optind];
+    fin.fname = argv[optind];
     
-    if ((pinp.fpin = fopen(fin, "r")) == NULL) {
-        printf("%s: file  not found\n", fin);
+    if ((fin.fp = fopen(fin.fname, "r")) == NULL) {
+        printf("%s: file  not found\n", fin.fname);
         exit(1);
     }
     
     if (cp == NULL) {
         // Optional output file name not there. Use default output file names.
-        fout  = malloc(strlen(fin) + (strlen(OPUPLD) + 6));    // room for '9999', '_', and '/'
-        finfo = malloc(strlen(fin) + (strlen(OPINFO) + 6));    // room for '9999', '_', and '/'
-        makeofname(fin, fout, finfo);
+        fout.fname = /*fout  =*/malloc(strlen(fin.fname) + (strlen(OPUPLD) + 6));    // room for '9999', '_', and '/'
+        finfo.fname = malloc(strlen(fin.fname) + (strlen(OPINFO) + 6));    // room for '9999', '_', and '/'
+        makeofname(fin.fname, fout.fname, finfo.fname);
     }
     else {
         // Optional output file name is there
-        int len = (int)strlen(dirname(fin)) + (int)strlen(cp) + 1;  // room for '/'
+        int len = (int)strlen(dirname(fin.fname)) + (int)strlen(cp) + 1;  // room for '/'
         
-        fout = calloc(len,1);
-        sprintf(fout, "%s/%s", dirname(fin), cp);
+        fout.fname = calloc(len,1);
+        sprintf(fout.fname, "%s/%s", dirname(fin.fname), cp);
         
-        finfo = calloc(((int)strlen(fin) + (int)(strlen(OPINFO) + (int)strlen(cp) + 2)),1);
-        sprintf(finfo, "%s/%s_%s", dirname(fin), OPINFO, cp);
+        finfo.fname = calloc(((int)strlen(fin.fname) + (int)(strlen(OPINFO) + (int)strlen(cp) + 2)),1);
+        sprintf(finfo.fname, "%s/%s_%s", dirname(fin.fname), OPINFO, cp);
     }
     
-    pinp.fpinfo = fopen(finfo, "w+");
-    fpout = fopen(fout, "w+");
+    finfo.fp = fopen(finfo.fname, "w+");
+    fout.fp = fopen(fout.fname, "w+");
     
-    fprintf(pinp.fpinfo,"\n%s\n", banner); // banner in inof file
+    fprintf(finfo.fp,"\n%s\n", banner); // banner in info file
     
     // If invoked from Automator print out invocation line in info file.
     if (isauto) {
         
         int i;
         
-        fprintf (pinp.fpinfo, "\n%s", basename(argv[0]));
+        fprintf (finfo.fp, "\n%s", basename(argv[0]));
         for (i=1; i<argc; ++i) {
             // Don't print out the hidden '-Automator' argument. 'isauto' is the index in argv
             if (i != isauto) {
                 // Surround entries having blanks with "
                 char *cp = strchr(argv[i], ' ');
                 if (cp == NULL) {
-                    fprintf (pinp.fpinfo, " %s", argv[i]);
+                    fprintf (finfo.fp, " %s", argv[i]);
                 }
                 else {
-                    fprintf (pinp.fpinfo, " \"%s\"", argv[i]);
+                    fprintf (finfo.fp, " \"%s\"", argv[i]);
                 }
             }
         }
     }
     
-    printf("\nOutput file name is \"%s\" (\"%s\")\n\n", basename(fout), fout);
-    fprintf(pinp.fpinfo, "\nOutput file name is \"%s\" (\"%s\")\n\n", basename(fout), fout);
+    printf("\nOutput file name is \"%s\" (\"%s\")\n\n", basename(fout.fname), fout.fname);
+    fprintf(finfo.fp, "\nOutput file name is \"%s\" (\"%s\")\n\n", basename(fout.fname), fout.fname);
+    
+    pinp.fin   = fin;
+    pinp.finfo = finfo;
     
     // Process each line in the input file
     prfout = processSrcFile(&pinp);
     
     // Done with all the input.
-    if (prfout.errorCnt > MAXPERROR) printf("%d more errors/warnings...\nSee %s in output directory\n\n", (prfout.errorCnt-MAXPERROR), basename(finfo));
+    if (prfout.errorCnt > MAXPERROR) printf("%d more errors/warnings...\nSee %s in output directory\n\n", (prfout.errorCnt-MAXPERROR), basename(finfo.fname));
     
-    if (fpout == NULL) {
-        printf("%s: cannot open\n", fout);
-        fprintf(pinp.fpinfo, "%s: cannot open\n", fout);
+    if (fout.fp == NULL) {
+        printf("%s: cannot open\n", fout.fname);
+        fprintf(finfo.fp, "%s: cannot open\n", fout.fname);
         prfout.outlines = 0;
     }
     else {
@@ -216,7 +220,7 @@ int main(int argc, char **argv)
                         *cp = '\0';
                     }
                 }
-                fprintf(fpout, "%s", pinp.olines[i]);
+                fprintf(fout.fp, "%s", pinp.olines[i]);
             }
             
             // Add the extra lines if we're below the minimum and the option was there.
@@ -224,16 +228,15 @@ int main(int argc, char **argv)
             if ((xtralines > 0) && isd)  {
                 int i;
                 
-                if (prfout.outlines) fprintf(fpout,"\n");        // Current last line is missing '\n'
+                if (prfout.outlines) fprintf(fout.fp,"\n");        // Current last line is missing '\n'
                 for (i=0; i<(xtralines-1); ++i) {
-                    fprintf(fpout, "%s%d\",999,1,\"[Author]\"\n", DUMMY_NAME,i);
+                    fprintf(fout.fp, "%s%d\",999,1,\"[Author]\"\n", DUMMY_NAME,i);
                 }
-                fprintf(fpout, "%s%d\",999,1,\"[Author]\"", DUMMY_NAME,i);  // no '\n' on the last line
+                fprintf(fout.fp, "%s%d\",999,1,\"[Author]\"", DUMMY_NAME,i);  // no '\n' on the last line
             }
-            fclose (fpout);
         }
         else {
-            fprintf(fpout, "\nNo lines written.\nSee %s for information\n", basename(finfo));
+            fprintf(fout.fp, "\nNo lines written.\nSee %s for information\n", basename(finfo.fname));
             prfout.outlines = 0;
         }
     }
@@ -241,23 +244,23 @@ int main(int argc, char **argv)
     xtralines = ((xtralines > 0) && isd) ? xtralines : 0;
 
     printf("\n%d lines read\n%d lines written\n", prfout.inlines, prfout.outlines + xtralines);
-    fprintf(pinp.fpinfo, "\n%d lines read\n%d lines written\n", prfout.inlines, prfout.outlines + xtralines);
+    fprintf(finfo.fp, "\n%d lines read\n%d lines written\n", prfout.inlines, prfout.outlines + xtralines);
     
     // We could be below the minumum if the -d option was not specified.
     if (prfout.outlines < MINLINES) {
         if (isd) {
             printf("WARNING: %d dummy entries written to output to comply with iGigBook minimum of %d\n\n", xtralines, MINLINES);
-            fprintf(pinp.fpinfo, "WARNING: %d dummy entries written to output to comply with iGigBook minimum of %d\n\n", xtralines, MINLINES);
+            fprintf(finfo.fp, "WARNING: %d dummy entries written to output to comply with iGigBook minimum of %d\n\n", xtralines, MINLINES);
         }
         else {
             printf("WARNING: Lines written out does not meet minimum iGigBook Bulk Upload minimum of %d.\nUse the -d option\n\n", MINLINES);
-            fprintf(pinp.fpinfo, "WARNING: Lines written out does not meet minimum iGigBook Bulk Upload minimum of %d.\nUse the -d option.\n\n", MINLINES);
+            fprintf(finfo.fp, "WARNING: Lines written out does not meet minimum iGigBook Bulk Upload minimum of %d.\nUse the -d option.\n\n", MINLINES);
         }
     }
 
-    fclose (pinp.fpin);
-    fclose (fpout);
-    fclose (pinp.fpinfo);
+    fclose (fin.fp);
+    fclose (finfo.fp);
+    fclose (fout.fp);
     
     exit(0);
 }
