@@ -83,20 +83,20 @@ PRF_OUTP processSrcFile(PRF_INP *pinp) {
             }
             if (prf.wout) {
                 // We think we're outputting so prepare storage for the well formed line.
-                pinp->olines[prf.outlines] = calloc(BUFSIZE,1);
+                prf.olines[prf.outlines] = calloc(BUFSIZE,1);
                 
                 // Populate the output line.
                 if (!pinp->isc) {
                     // skip the number of pages field to retrieve composer
                     cp = strchr(cp,',') + 1;
-                    sprintf(pinp->olines[prf.outlines],"%s,%d,%d,%s", cpy, curpage, numpages, cp);
+                    sprintf(prf.olines[prf.outlines],"%s,%d,%d,%s", cpy, curpage, numpages, cp);
                 } else {
                     // We're using the user-provided Composer string.
-                    sprintf(pinp->olines[prf.outlines],"%s,%d,%d,\"%s\"\n", cpy, curpage, numpages, pinp->defAuthor);
+                    sprintf(prf.olines[prf.outlines],"%s,%d,%d,\"%s\"\n", cpy, curpage, numpages, pinp->defAuthor);
                 }
                 
                 // return unneeded memory
-                pinp->olines[prf.outlines] = realloc(pinp->olines[prf.outlines], strlen(pinp->olines[prf.outlines])+1);
+                prf.olines[prf.outlines] = realloc(prf.olines[prf.outlines], strlen(prf.olines[prf.outlines])+1);
                 curpage += numpages;
                 prf.outlines++;
             }

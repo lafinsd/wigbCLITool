@@ -34,7 +34,6 @@ typedef struct {
     int   isc;
     int   isp;
     char *defAuthor;
-    char *olines[MAXLINES];
     FINFO fin;
     FINFO finfo;
 } PRF_INP;
@@ -44,6 +43,7 @@ typedef struct {
     int outlines;
     int errorCnt;
     int wout;
+    char *olines[MAXLINES];
 } PRF_OUTP;
 
 PARSE_RES parseLine(char *, int, int, FILE *);

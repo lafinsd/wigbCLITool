@@ -215,12 +215,12 @@ int main(int argc, char **argv)
             for (i=0; i<prfout.outlines; ++i) {
                 // Bulk Upload will not tolerate an empty line. Kill '\n' at end of last entry (if it's there)
                 if (i == (prfout.outlines-1)) {
-                    char *cp = strchr(pinp.olines[i],'\n');
+                    char *cp = strchr(prfout.olines[i],'\n');
                     if (cp != NULL) {
                         *cp = '\0';
                     }
                 }
-                fprintf(fout.fp, "%s", pinp.olines[i]);
+                fprintf(fout.fp, "%s", prfout.olines[i]);
             }
             
             // Add the extra lines if we're below the minimum and the option was there.
