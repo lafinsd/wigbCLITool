@@ -145,7 +145,7 @@ int main(int argc, char **argv)
     }
     
     if (cp == NULL) {
-#ifdef DO_NOT_OVERWRITE
+#if DO_NOT_OVERWRITE==1
         // room for '9999', '_', and '/'
         int xtra = 6;
 #else
@@ -306,7 +306,7 @@ static void makeofname (char *fin, char *fout, char *finfo) {
     sprintf(fout, "%s/%s_%s", dirname(fin), OPUPLD, basename(fin));
     
 // We may eventually eliminate the overwrite protection.
-#ifdef DO_NOT_OVERWRITE
+#if DO_NOT_OVERWRITE==1
     
     char *cp    = fout + strlen(dirname(fout))+sizeof(OPUPLD);
     long  count = strtol(cp,NULL,10);
