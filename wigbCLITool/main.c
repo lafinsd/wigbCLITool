@@ -14,6 +14,8 @@
 
 #define OPUPLD     "BlkUpld"
 #define OPINFO     "info"
+#define MAXOVRWRT  20
+
 #define ETYPE      "(b2.1)"
 #define DUMMY_NAME "\"ZZSong"
 
@@ -195,7 +197,9 @@ static int makeofname (int diff, char *np, char *fin, char **fout, char **finfo)
     }
     else {
         // Optional output file name not there. Use default output file names.
-        *fout  = malloc(strlen(fin) + (strlen(OPUPLD) + 4));  // room for '/', '_', '99' if needed
+        
+        // when malloc-ing get room for '/', '_', up to '99'
+        *fout  = malloc(strlen(fin) + (strlen(OPUPLD) + 4));
         *finfo = malloc(strlen(fin) + (strlen(OPINFO) + 4));
         sprintf(*finfo, "%s/%s_%s", dirname(fin), OPINFO, basename(fin));
         sprintf(*fout, "%s/%s_%s", dirname(fin), OPUPLD, basename(fin));
@@ -205,8 +209,8 @@ static int makeofname (int diff, char *np, char *fin, char **fout, char **finfo)
         int   count = (int)strtol(cp,NULL,10);
         
         while ((access(*fout, F_OK)) != -1) {
-            if (++count == 100) {
-                printf("Count for duplicate (%d) output files excessive. Run terminated\n", count);
+            if (++count == (MAXOVRWRT > 99 ? 99 : MAXOVRWRT)) {
+                printf("\nCount for duplicate output files (%d) excessive. Run terminated\n\n", count);
                 return 2;
             }
             sprintf(*fout, "%s/%s%d_%s", dirname(fin), OPUPLD, count, basename(fin));
