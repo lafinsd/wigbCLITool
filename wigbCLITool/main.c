@@ -16,7 +16,7 @@
 #define OPINFO     "info"
 #define MAXOVRWRT  20
 
-#define ETYPE      "(b2.1)"
+#define ETYPE      "(2.1)"
 #define DUMMY_NAME "\"ZZSong"
 
 static int   makeofname(int, char *, char *, char **, char **);
