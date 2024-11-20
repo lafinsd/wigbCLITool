@@ -9,8 +9,11 @@
 #define MAXLINES 500  // Limited by iGigBook Bulk Upload constraints
 #define MINLINES  50  // Limited by iGigBook Bulk Upload constraints
 #define MAXPERROR 10
+#define INITCP     1
 
 #define DEFAUTHOR  "[Author]"
+
+#define USAGE_FMT  "Usage: %s [-d] [-p] [-c<\"Composer\">] [-f<offset>] <infile> [outfile]\n"
 
 typedef enum {
     E_NONE,
@@ -46,5 +49,14 @@ typedef struct {
     char *olines[MAXLINES];
 } PRF_OUTP;
 
+typedef struct {
+    int      argc;
+    char   **argv;
+    int      isauto;
+    int      isd;
+    PRF_INP *pinp;
+} GOPT;
+
 PARSE_RES parseLine(char *, int, int, FILE *);
 PRF_OUTP  processSrcFile(PRF_INP *);
+int       procopt(GOPT *);
