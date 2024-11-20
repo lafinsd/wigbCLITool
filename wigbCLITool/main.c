@@ -14,7 +14,7 @@
 
 #define OPUPLD     "BlkUpld"
 #define OPINFO     "info"
-#define ETYPE      "(2.0)"
+#define ETYPE      "b(2.1)"
 #define DUMMY_NAME "\"ZZSong"
 
 #define USAGE_FMT  "Usage: %s [-d] [-p] [-c<\"Composer\">] [-f<offset>] <infile> [outfile]\n"
@@ -27,7 +27,7 @@ static char *getRunTime (void);
 
 int main(int argc, char **argv)
 {
-    char *cp, *banner;
+    char *banner;
     int isd = 0, isauto = 0, xtralines = 0;
     FINFO fin, fout, finfo;
     PRF_INP pinp    = {0};
@@ -37,6 +37,7 @@ int main(int argc, char **argv)
     
     printBanner(argv[0], &banner);
     
+    // Poprcess any options
     {
         int offset, gopt;
         
@@ -121,30 +122,32 @@ int main(int argc, char **argv)
         strcpy(pinp.defAuthor, DEFAUTHOR);
     }
     
-    // See if optional output file name is there and if so save it.
+    fin.fname = argv[optind];
+    
+    // Create output file name
     {
         int diff = argc - optind;
-        
-        cp = NULL;
+
         if (diff != NUMARGS)  {
             if (diff == (NUMARGS+1)) {
-                cp = argv[optind+1];
+                // Optional output file name is there. Get it
+                char *cp = argv[optind+1];
+                int  len = (int)strlen(dirname(fin.fname)) + (int)strlen(cp) + 1;  // room for '/'
+                
+                fout.fname = calloc(len,1);
+                sprintf(fout.fname, "%s/%s", dirname(fin.fname), cp);
+                
+                finfo.fname = calloc(((int)strlen(fin.fname) + (int)(strlen(OPINFO) + (int)strlen(cp) + 2)),1);
+                sprintf(finfo.fname, "%s/%s_%s", dirname(fin.fname), OPINFO, cp);
             }
             else {
                 printf(USAGE_FMT, basename(argv[0]));
                 exit(1);
             }
         }
-    }
-    
-    fin.fname = argv[optind];
-    
-    if ((fin.fp = fopen(fin.fname, "r")) == NULL) {
-        printf("%s: file  not found\n", fin.fname);
-        exit(1);
-    }
-    
-    if (cp == NULL) {
+        else {
+            // Optional output file name not there. Use default output file names.
+            
 #if DO_NOT_OVERWRITE==1
         // room for '9999', '_', and '/'
         int xtra = 6;
@@ -152,22 +155,18 @@ int main(int argc, char **argv)
         // room for '_', and '/'
         int xtra = 2;
 #endif
-        // Optional output file name not there. Use default output file names.
+        
         fout.fname  = malloc(strlen(fin.fname) + (strlen(OPUPLD) + xtra));
         finfo.fname = malloc(strlen(fin.fname) + (strlen(OPINFO) + xtra));
         makeofname(fin.fname, fout.fname, finfo.fname);
-    }
-    else {
-        // Optional output file name is there
-        int len = (int)strlen(dirname(fin.fname)) + (int)strlen(cp) + 1;  // room for '/'
-        
-        fout.fname = calloc(len,1);
-        sprintf(fout.fname, "%s/%s", dirname(fin.fname), cp);
-        
-        finfo.fname = calloc(((int)strlen(fin.fname) + (int)(strlen(OPINFO) + (int)strlen(cp) + 2)),1);
-        sprintf(finfo.fname, "%s/%s_%s", dirname(fin.fname), OPINFO, cp);
+        }
     }
     
+    if ((fin.fp = fopen(fin.fname, "r")) == NULL) {
+        printf("%s: file  not found\n", fin.fname);
+        exit(1);
+    }
+
     finfo.fp = fopen(finfo.fname, "w+");
     fout.fp = fopen(fout.fname, "w+");
     
