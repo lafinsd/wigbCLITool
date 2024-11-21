@@ -16,7 +16,6 @@
 #define OPINFO     "info"
 #define MAXOVRWRT  20
 
-#define ETYPE      "(2.1)"
 #define DUMMY_NAME "\"ZZSong"
 
 static int   makeofname(int, char *, char *, char **, char **);
@@ -171,7 +170,7 @@ static void printBanner(char *myName, char **banner) {
     idx  = (d[4] != ' ') ? 4 : 5;
     
     sprintf(dts, "%s-%s-%sT%s",&d[7], __MONTH__, &d[idx], __TIME__);
-    sprintf(*banner, "%s%s (%s  %s)", basename(myName), ETYPE, dts, rt);
+    sprintf(*banner, "%s%s (%s  %s)", basename(myName), RTYPE, dts, rt);
     printf("%s\n", *banner);
     free(d);
     free(rt);
