@@ -232,6 +232,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_NO_COMMON_BLOCKS = YES;
 				"GCC_PREPROCESSOR_DEFINITIONS[arch=*]" = (
+					"$(inherited)",
 					"DO_NOT_OVERWRITE=1",
 					"RTYPE=\\\"(2.2)\\\"",
 				);
