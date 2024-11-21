@@ -31,7 +31,7 @@
       shouldAutocreateTestPlan = "YES">
    </TestAction>
    <LaunchAction
-      buildConfiguration = "Debug"
+      buildConfiguration = "Release"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
@@ -41,11 +41,8 @@
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES"
       viewDebuggingEnabled = "No">
-      <PathRunnable
-         runnableDebuggingMode = "0"
-         FilePath = "/Users/lafMBAir/Library/Developer/Xcode/DerivedData/wigbCLITool-dlvnniqcwdgtrofnarvqqsehijxh/Build/Products/Debug/wigbCLITool">
-      </PathRunnable>
-      <MacroExpansion>
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "83D362682CACC48D002E909A"
@@ -53,7 +50,7 @@
             BlueprintName = "wigbCLITool"
             ReferencedContainer = "container:wigbCLITool.xcodeproj">
          </BuildableReference>
-      </MacroExpansion>
+      </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
             argument = "-p"
@@ -93,7 +90,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-Automator"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-Automater"
