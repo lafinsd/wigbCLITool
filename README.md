@@ -108,7 +108,8 @@ DESCRIPTION
 OUTPUT
 
 	The original input file is left untouched. The tool creates two output files 
-	and leaves them in the same folder as the input file. If the input filename is 			‘myIndexFile.txt’ the first resulting output file will be called 
+	and leaves them in the same folder as the input file. If the input filename
+ 	is 'myIndexFile.txt’ the resulting output file will be called
 	‘BlkUpld_myIndexFile.txt’. That is, the prefix ‘BlkUpld_’ will be 
 	added to the input file name. This file is the result of the tool 
 	processing and should be used as the Bulk Upload source file for iGigBook.
